@@ -90,7 +90,7 @@ class UDPIPProtocol:
 
 
         buffer =  BVLC.encode(offset - BVLC.BVLC_HEADER_LENGTH, function , full_length) + buffer
-
+        address = BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=20)
         self.transport.sendto(buffer, (address.IP_and_port()))
 
 

@@ -27,13 +27,14 @@ def recieved_WHOIS(sender : BacnetClient, adr : BACnetAddress, rq : WhoIs_Reques
     test_deviceid = 1001
     if (rq.deviceInstanceRangeLowLimit != None and rq.deviceInstanceRangeHighLimit != None and test_deviceid >= rq.deviceInstanceRangeLowLimit  and test_deviceid <= rq.deviceInstanceRangeHighLimit) or (rq.deviceInstanceRangeLowLimit == None and rq.deviceInstanceRangeHighLimit == None):
         sender.UnconfirmedIam(IAm_Request(BACnetObjectIdentifier(BACnetObjectType.Device, test_deviceid), 20, BACnetSegmentation.NO_SEGMENTATION, 250))
-        sender.ReadPropertyRequest(BACnetAddress(address="192.168.0.154:47808",net_type=BACnetNetworkType.IPV4, network_number=0 ),
-                                  ReadProperty_Request(BACnetObjectIdentifier(BACnetObjectType.Analog_Input, 0),
-                                                        BACnetPropertyIdentifier.PRESENT_VALUE))
+
 
 def recieved_IAM(sender : BacnetClient, adr : BACnetAddress, rq : IAm_Request):
     print("recieved IAM")
-
+    sender.ReadPropertyRequest(
+        BACnetAddress(address="1.0.0.0:0", net_type=BACnetNetworkType.IPV4, network_number=20),
+        ReadProperty_Request(BACnetObjectIdentifier(BACnetObjectType.Analog_Input, 0),
+                             BACnetPropertyIdentifier.PRESENT_VALUE))
 
 
 def recieved_WhoHas(sender : BacnetClient, adr : BACnetAddress, rq : WhoHas_Request):

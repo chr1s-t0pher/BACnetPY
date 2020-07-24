@@ -448,15 +448,12 @@ class BacnetClient:
             BacnetClient.ProcessSimpleAck(adr, apdu, buffer, offset, length)
         elif apdu.pdu_type == BacnetPduTypes.PDU_TYPE_COMPLEX_ACK:
 
-            (apdu_header_len, service, invoke_id, sequence_number, proposed_window_number) = APDU.DecodeComplexAck(
-                buffer, offset)
-
             offset += apdu_header_len
 
             length -= apdu_header_len
 
-            if (apdu.service_choice & BacnetPduTypes.SEGMENTED_MESSAGE) == 0:
-                BacnetClient.ProcessComplexAck(adr, apdu.pdu_type, apdu.service_choice, invoke_id, buffer, offset, length)
+            if (apdu.pdu_type & BacnetPduTypes.SEGMENTED_MESSAGE) == 0:
+                BacnetClient.ProcessComplexAck(adr, apdu.pdu_type, apdu.service_choice, apdu.invoke_id, buffer, offset, length)
             else:
                 pass  # segements!!!!
         elif apdu.pdu_type == BacnetPduTypes.PDU_TYPE_SEGMENT_ACK:
