@@ -1,4 +1,3 @@
-#
 #MIT License
 #
 #Copyright (c) 2020 chr1s-t0pher
