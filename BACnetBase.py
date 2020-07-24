@@ -1,4 +1,3 @@
-#
 #MIT License
 #
 #Copyright (c) 2020 chr1s-t0pher
@@ -27,6 +26,8 @@ from datetime import datetime, date, time
 import enum
 import struct
 import logging, sys
+
+from BACnetRequest import *
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -313,40 +314,7 @@ class error_code_enum(enum.IntEnum):
     duplicate_entry = 137
     invalid_value_in_this_state = 138
 
-# todo Error add ASN1encodeInterface
-class BACnetError:
-    # Error renamed to BACnetError
-    def __init__(self, error_class: error_class_enum = None,
-                 error_code: error_code_enum = None):
-        self.error_class = error_class
-        self.error_code = error_code
 
-    def __str__(self):
-        return str(self.error_class) + ":" + str(self.error_code)
-
-    def ASN1decode(self, buffer, offset, apdu_len) -> int:
-        leng = 0
-        # error_class
-        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
-        leng += leng1
-        if tag_number == BACnetApplicationTags.ENUMERATED:
-            (leng1, e_val) = ASN1.decode_enumerated(buffer, offset + leng, len_value)
-            leng += leng1
-            self.error_class = error_class_enum(e_val)
-        else:
-            return -1
-
-        # error_code
-        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
-        leng += leng1
-        if tag_number == BACnetApplicationTags.ENUMERATED:
-            (leng1, e_val) = ASN1.decode_enumerated(buffer, offset + leng, len_value)
-            leng += leng1
-            self.error_code = error_code_enum(e_val)
-        else:
-            return -1
-
-        return leng
 
 
 class BACnetObjectIdentifier(ASN1encodeInterface):
@@ -503,10 +471,108 @@ class BACnetValue:
 
     def ASN1decode(self, buffer, offset, apdu_len, obj_type: BACnetObjectType = None,
                    prop_id: BACnetPropertyIdentifier = None):
-        (leng, val) = ASN1.bacapp_decode_application_data(buffer, offset, apdu_len, obj_type, prop_id)
-        # todo write better??????
-        self.Value = val.Value
-        self.Tag = val.Tag
+        leng = 0
+
+        # FIXME: use max_apdu_len!
+
+        if not (ASN1.IS_CONTEXT_SPECIFIC(buffer[offset])):
+            (tag_len, tag_number, len_value_type) = ASN1.decode_tag_number_and_value(buffer, offset)
+            if tag_len > 0:
+                self.Tag = BACnetApplicationTags(tag_number)
+                leng += tag_len
+
+                decode_len = 0
+
+                if self.Tag == BACnetApplicationTags.NULL:
+                    return leng
+                    # fixme fix null type nothing else to do, some Error occurs!!!!
+                elif self.Tag == BACnetApplicationTags.BOOLEAN:
+                    if len_value_type > 0:
+                        self.Value = True
+                    else:
+                        self.Value = False
+                elif self.Tag == BACnetApplicationTags.UNSIGNED_INT:
+                    (decode_len, uint_value) = ASN1.decode_unsigned(buffer, offset+leng, len_value_type)
+                    self.Value = uint_value
+                elif self.Tag == BACnetApplicationTags.SIGNED_INT:
+                    (decode_len, int_value) = ASN1.decode_signed(buffer, offset+leng, len_value_type)
+                    self.Value = int_value
+                elif self.Tag == BACnetApplicationTags.REAL:
+                    (decode_len, float_value) = ASN1.decode_real_safe(buffer, offset+leng, len_value_type)
+                    self.Value = float_value
+                elif self.Tag == BACnetApplicationTags.DOUBLE:
+                    (decode_len, double_value) = ASN1.decode_double_safe(buffer, offset+leng, len_value_type)
+                    self.Value = double_value
+                elif self.Tag == BACnetApplicationTags.OCTET_STRING:
+                    (decode_len, octet_value) = ASN1.decode_octet_string(buffer, offset+leng, len_value_type)
+                    self.Value = octet_value
+                elif self.Tag == BACnetApplicationTags.CHARACTER_STRING:
+                    (decode_len, string_value) = ASN1.decode_character_string(buffer, offset+leng, apdu_len, len_value_type)
+                    self.Value = string_value
+                elif self.Tag == BACnetApplicationTags.BIT_STRING:
+                    # some context specific!
+                    # special Bitstrings!
+                    if prop_id == BACnetPropertyIdentifier.STATUS_FLAGS:
+                        self.Tag = None
+
+                        bit_value = BACnetStatusFlags()
+                    elif prop_id == BACnetPropertyIdentifier.EVENT_ENABLE or \
+                            prop_id == BACnetPropertyIdentifier.ACKED_TRANSITIONS:
+                        self.Tag = None
+
+                        bit_value = BACnetEventTransitionBits()
+                    elif prop_id == BACnetPropertyIdentifier.LIMIT_ENABLE:
+                        self.Tag = None
+
+                        bit_value = BACnetLimitEnable()
+                    elif prop_id == BACnetPropertyIdentifier.PROTOCOL_OBJECT_TYPES_SUPPORTED:
+                        self.Tag = None
+
+                        bit_value = BACnetObjectTypesSupported()
+                    elif prop_id == BACnetPropertyIdentifier.PROTOCOL_SERVICES_SUPPORTED:
+                        self.Tag = None
+
+                        bit_value = BACnetServicesSupported()
+                    else:
+                        bit_value = BACnetBitString()
+
+                    decode_len = bit_value.ASN1decode(buffer, offset, len_value_type)
+                    self.Value = bit_value
+                elif self.Tag == BACnetApplicationTags.ENUMERATED:
+
+                    (decode_len, uint_value) = ASN1.decode_enumerated(buffer, offset+leng, len_value_type, obj_type,
+                                                                prop_id)
+                    self.Value = uint_value
+                elif self.Tag == BACnetApplicationTags.DATE:
+                    # some context specific!
+                    if prop_id == BACnetPropertyIdentifier.EFFECTIVE_PERIOD:
+                        self.Tag = None
+                        self.Value = BACnetDateRange()
+                        leng -= 1
+                        decode_len = self.Value.ASN1decode(buffer, offset+leng, apdu_len)
+
+                    else:
+                        (decode_len, date_value) = ASN1.decode_date_safe(buffer, offset+leng, len_value_type)
+                        self.Value = date_value;
+                elif self.Tag == BACnetApplicationTags.TIME:
+                    (decode_len, time_value) = ASN1.decode_bacnet_time_safe(buffer, offset+leng, len_value_type)
+                    self.Value = time_value
+                elif self.Tag == BACnetApplicationTags.BACNETOBJECTIDENTIFIER:
+                    (decode_len, object_type, instance) = ASN1.decode_object_id_safe(buffer, offset+leng, len_value_type)
+                    self.Value = BACnetObjectIdentifier(object_type, instance)
+
+                if (decode_len < 0):
+                    return -1
+                leng += decode_len
+
+        else:
+
+            # context specific
+            # todo fix context specific!!!
+            print("context specific!!!!")
+            # (leng1,value) = ASN1.bacapp_decode_context_application_data(buffer, offset, max_offset, object_type, property_id)
+            # leng +=leng1
+
         return leng
 
 
@@ -2025,7 +2091,7 @@ class BACnetStatusFlags:
         self.outofservice: bool = False
 
     def __str__(self):
-        return str(self._bitstring.value.bin)
+        return "BACnetStatusFlags: "+str(self._bitstring.value.bin)
 
     def ASN1decode(self, buffer, offset, apdu_len):
         self._bitstring = BACnetBitString()
@@ -3335,6 +3401,9 @@ class BACnetDateRange:
         self.start_date = start_date
         self.end_date = end_date
 
+    def __str__(self):
+        return "start_date: "+str(self.start_date)+" : "+"end date: "+str(self.end_date)
+
     def ASN1decode(self, buffer, offset, apdu_len):
         leng = 0
         leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
@@ -3342,13 +3411,15 @@ class BACnetDateRange:
             leng += leng1
             leng1, self.start_date = ASN1.decode_date_safe(buffer, offset+leng, len_value)
             leng += leng1
+
         else:
             return -1
         leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
         if tag_number == BACnetApplicationTags.DATE:
             leng += leng1
-            leng1, self.end_date_date = ASN1.decode_date_safe(buffer, offset + leng, len_value)
+            leng1, self.end_date = ASN1.decode_date_safe(buffer, offset + leng, len_value)
             leng += leng1
+
         else:
             return -1
 
@@ -4549,7 +4620,7 @@ class APDU:
         elif self.pdu_type == BacnetPduTypes.PDU_TYPE_SIMPLE_ACK:
             buffer = tmp.bytes + struct.pack('!B', self.invoke_id)
         elif self.pdu_type == BacnetPduTypes.PDU_TYPE_COMPLEX_ACK:
-            buffer += struct.pack('!B', self.invoke_id)
+            buffer = struct.pack('!B', self.invoke_id)
             if self.segmented_message:
                 buffer += struct.pack('!B', self.sequence_number)
                 buffer += struct.pack('!B', self.proposed_window_size)
@@ -4563,6 +4634,7 @@ class APDU:
         self.pdu_type = BacnetPduTypes(buffer[offset] & 0xFF)
         tmp = BitArray("uint:8=" + str(buffer[offset]))
         leng += 1
+        #todo add all
         if self.pdu_type == BacnetPduTypes.PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
             self.segmented_message = tmp[4]
             self.more_follows = tmp[5]
@@ -4592,11 +4664,18 @@ class APDU:
             self.segmented_message = tmp[4]
             self.invoke_id = buffer[offset + leng]
             leng += 1
+            self.service_choice = BACnetConfirmedServiceChoice(buffer[offset + leng])
+            leng += 1
             if self.segmented_message:
                 self.sequence_number = buffer[offset+leng]
                 leng += 1
                 self.proposed_window_size = buffer[offset+leng]
                 leng += 1
+        elif self.pdu_type == BacnetPduTypes.PDU_TYPE_ERROR:
+            self.invoke_id = buffer[offset + leng]
+            leng += 1
+            self.service_choice = BACnetConfirmedServiceChoice(buffer[offset + leng])
+            leng += 1
         else:
             return -1
 
