@@ -3328,6 +3328,76 @@ class BACnetLogRecord:
 # todo BACnetLogData add
 # todo BACnetLogMultipleRecord add
 
+# todo BACnetDateRange add ASN1encodeInterface
+class BACnetDateRange:
+    def __init__(self,start_date:date = None, end_date:date = None):
+        self.start_date = start_date
+        self.end_date = end_date
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        if tag_number == BACnetApplicationTags.DATE:
+            leng += leng1
+            leng1, self.start_date = ASN1.decode_date_safe(buffer, offset+leng, len_value)
+            leng += leng1
+        else:
+            return -1
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        if tag_number == BACnetApplicationTags.DATE:
+            leng += leng1
+            leng1, self.end_date_date = ASN1.decode_date_safe(buffer, offset + leng, len_value)
+            leng += leng1
+        else:
+            return -1
+
+        return leng
+
+# todo BACnetCalendarEntry add ASN1encodeInterface
+class BACnetCalendarEntry:
+    def __init__(self, value = None):
+        self.value = value
+
+    def __str__(self):
+        return "BACnetCalendarEntry: "+str(type(self.value))+" "+str(self.value)
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == 0:
+            leng1, self.value = ASN1.decode_date_safe(buffer, offset + leng, len_value)
+            leng += leng1
+        elif tag_number == 1:
+            self.value = BACnetDateRange()
+            leng += self.value.ASN1decode(buffer, offset+leng, len_value)
+        elif tag_number == 2:
+            self.value = BACnetWeekNDay()
+            leng += self.value.ASN1decode(buffer, offset + leng, len_value)
+        else:
+            return -1
+
+        return leng
+
+# todo BACnetEventLogRecord add ASN1encodeInterface
+class BACnetEventLogRecord:
+    def __init__(self, timestamp: BACnetDateTime = None,
+                 log_datum = None):
+        self.timestamp = timestamp
+        self.log_datum = log_datum
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 0):
+            leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+            leng += leng1
+            self.timestamp = BACnetDateTime
+            leng += self.timestamp.ASN1decode(buffer, offset+leng, len_value)
+        else:
+            return -1
+
+        return leng
+
 class BACnetReadResult:
     def __init__(self, propertyidentifier: BACnetPropertyIdentifier = None,
                  propertyarrayindex: int = None,

@@ -374,7 +374,7 @@ class TextMessage_Request:
 class IAm_Request:
     def __init__(self, iamdeviceidentifier : BACnetObjectIdentifier = None,
                  maxapdulengthaccepted : int = None,
-                 segmentationsupported : BACnetSegmentation = None,
+                 segmentationsupported = None,
                  vendorid : int = None):
         self.iamdeviceidentifier = iamdeviceidentifier
         self.maxapdulengthaccepted = maxapdulengthaccepted
@@ -411,7 +411,7 @@ class IAm_Request:
             return -1
         (leng1, decoded_value) = ASN1.decode_unsigned(buffer, offset + leng, len_value)
         leng += leng1
-        self.maxapdulengthaccepted = BacnetMaxAdpu(decoded_value)
+        self.maxapdulengthaccepted = decoded_value
 
         # Segmentation - enumerated
         (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
