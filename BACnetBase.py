@@ -355,7 +355,7 @@ class BACnetObjectIdentifier():
         return ASN1.encode_tag(tag_number, True, len(tmp)) + tmp
 
 
-class BACnetDateTime:
+class BACnetDateTime(ASN1encodeInterface):
     def __init__(self, DATE: date = None, TIME: time = None):
         self.DATE = DATE
         self.TIME = TIME
@@ -375,7 +375,7 @@ class BACnetDateTime:
         return ASN1.encode_application_date(self.DATE) + ASN1.encode_application_time(self.TIME)
 
 #todo BACnetPropertyValue add ASN1encodeInterface
-class BACnetPropertyValue:
+class BACnetPropertyValue(ASN1encodeInterface):
     def __init__(self, identifier=None, arrayindex=None, value=None, priority=None):
         self.identifier = identifier
         self.arrayindex = arrayindex
@@ -449,7 +449,7 @@ class BACnetPropertyValue:
         return leng
 
 # todo Error add ASN1encodeInterface
-class BACnetError:
+class BACnetError(ASN1encodeInterface):
     # Error renamed to BACnetError
     def __init__(self, error_class: error_class_enum = None,
                  error_code: error_code_enum = None):
@@ -802,7 +802,33 @@ class BACnetValue(ASN1encodeInterface):
                     (obj_type == BACnetObjectType.Credential_Data_Input and prop_id == BACnetPropertyIdentifier.PRESENT_VALUE):
                 self.Value = BACnetAuthenticationFactor()
                 leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
-
+            elif prop_id == BACnetPropertyIdentifier.SUPPORTED_FORMATS:
+                self.Value = BACnetAuthenticationFactorFormat()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.AUTHENTICATION_POLICY_LIST:
+                self.Value = BACnetAuthenticationPolicy()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif obj_type == BACnetObjectType.Channel and prop_id == BACnetPropertyIdentifier.PRESENT_VALUE:
+                self.Value = BACnetChannelValue()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.ACTIVE_COV_SUBSCRIPTIONS:
+                self.Value = BACnetCOVSubscription()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.AUTHENTICATION_FACTORS:
+                self.Value = BACnetCredentialAuthenticationFactor()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.WEEKLY_SCHEDULE:
+                self.Value = BACnetDailySchedule()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.SUBSCRIBED_RECIPIENTS:
+                self.Value = BACnetEventNotificationSubscription()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.EVENT_PARAMETERS:
+                self.Value = BACnetEventParameter()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.FAULT_PARAMETERS:
+                self.Value = BACnetFaultParameter()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
             else:
                 logging.debug("context specific!!!! needs to be addded")
                 leng = apdu_len
@@ -844,7 +870,7 @@ class BACnetValue(ASN1encodeInterface):
 
 
 # todo BACnetPropertyReference add ASN1encodeInterface
-class BACnetPropertyReference:
+class BACnetPropertyReference(ASN1encodeInterface):
     def __init__(self, propertyIdentifier: BACnetPropertyIdentifier = None, propertyArrayIndex: int = None):
         self.propertyIdentifier = propertyIdentifier
 
@@ -878,7 +904,7 @@ class BACnetPropertyReference:
 
 
 # todo BACnetTimeStamp add ASN1encodeInterface
-class BACnetTimeStamp:
+class BACnetTimeStamp(ASN1encodeInterface):
     def __init__(self, value=None):
         self.value = value
 
@@ -987,7 +1013,7 @@ class BACnetPropertyStatesChoice(enum.IntEnum):
 
 
 # todo BACnetPropertyStates add ASN1encodeInterface
-class BACnetPropertyStates:
+class BACnetPropertyStates(ASN1encodeInterface):
     def __init__(self, value=None, _choice: BACnetPropertyStatesChoice = None):
         self.value = value
         self._choice = _choice
@@ -1131,7 +1157,7 @@ class BACnetPropertyStates:
 
 
 # todo add ASN1encodeInterface
-class BACnetBitString:
+class BACnetBitString(ASN1encodeInterface):
     def __init__(self, unused_bits=None, value: BitArray = None):
         self.unused_bits = unused_bits
         self.value = value
@@ -1152,60 +1178,12 @@ class BACnetBitString:
                     bit += 1
         return apdu_len
 
-
-class BACnetServicesSupported:
+#todo add asn1encode
+class BACnetServicesSupported(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 7
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00000000000000'))
-        # Alarm and Event Services
-        self.acknowledge_alarm: bool = False
-        self.confirmed_cov_notification: bool = False
-        self.confirmed_cov_notification_multiple: bool = False
-        self.confirmed_event_notification: bool = False
-        self.get_alarm_summary: bool = False
-        self.get_enrollment_summary: bool = False
-        self.get_event_information: bool = False
-        self.life_safety_operation: bool = False
-        self.subscribe_cov: bool = False
-        self.subscribe_cov_property: bool = False
-        self.subscribe_cov_property_multiple: bool = False
-        # File Access Services
-        self.atomic_read_file: bool = False
-        self.atomic_write_file: bool = False
-        # Object Access Services
-        self.add_list_element: bool = False
-        self.remove_list_element: bool = False
-        self.create_object: bool = False
-        self.delete_object: bool = False
-        self.read_property: bool = False
-        self.read_property_multiple: bool = False
-        self.read_range: bool = False
-        self.write_group: bool = False
-        self.write_property: bool = False
-        self.write_property_multiple: bool = False
-        # Remote Device Management Services
-        self.device_communication_control: bool = False
-        self.confirmed_private_transfer: bool = False
-        self.confirmed_text_message: bool = False
-        self.reinitialize_device: bool = False
-        self.who_Am_I: bool = False
-        self.you_Are: bool = False
-        # Virtual Terminal Services
-        self.vt_open: bool = False
-        self.vt_close: bool = False
-        self.vt_data: bool = False
-        # Unconfirmed Services
-        self.i_am: bool = False
-        self.i_have: bool = False
-        self.unconfirmed_cov_notification: bool = False
-        self.unconfirmed_cov_notification_multiple: bool = False
-        self.unconfirmed_event_notification: bool = False
-        self.unconfirmed_private_transfer: bool = False
-        self.unconfirmed_text_message: bool = False
-        self.time_synchronization: bool = False
-        self.utc_time_synchronization: bool = False
-        self.who_has: bool = False
-        self.who_is: bool = False
+
 
     def ASN1decode(self, buffer, offset, apdu_len):
         self._bitstring = BACnetBitString()
@@ -1558,72 +1536,12 @@ class BACnetServicesSupported:
     def who_is(self, a: bool):
         self._bitstring.value[34] = a
 
-
-class BACnetObjectTypesSupported:
+#todo add ASN1encode
+class BACnetObjectTypesSupported(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 3
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x0000000000000000'))
-        self.ANALOG_INPUT: bool = False
-        self.ANALOG_OUTPUT: bool = False
-        self.ANALOG_VALUE: bool = False
-        self.BINARY_INPUT: bool = False
-        self.BINARY_OUTPUT: bool = False
-        self.BINARY_VALUE: bool = False
-        self.CALENDAR: bool = False
-        self.COMMAND: bool = False
-        self.DEVICE: bool = False
-        self.EVENT_ENROLLMENT: bool = False
-        self.FILE: bool = False
-        self.GROUP: bool = False
-        self.LOOP: bool = False
-        self.MULTI_STATE_INPUT: bool = False
-        self.MULTI_STATE_OUTPUT: bool = False
-        self.NOTIFICATION_CLASS: bool = False
-        self.PROGRAM: bool = False
-        self.SCHEDULE: bool = False
-        self.AVERAGING: bool = False
-        self.MULTI_STATE_VALUE: bool = False
-        self.TRENDLOG: bool = False
-        self.LIFE_SAFETY_POINT: bool = False
-        self.LIFE_SAFETY_ZONE: bool = False
-        self.ACCUMULATOR: bool = False
-        self.PULSE_CONVERTER: bool = False
-        self.EVENT_LOG: bool = False
-        self.GLOBAL_GROUP: bool = False
-        self.TREND_LOG_MULTIPLE: bool = False
-        self.LOAD_CONTROL: bool = False
-        self.STRUCTURED_VIEW: bool = False
-        self.ACCESS_DOOR: bool = False
-        self.TIMER: bool = False
-        self.ACCESS_CREDENTIAL: bool = False
-        self.ACCESS_POINT: bool = False
-        self.ACCESS_RIGHTS: bool = False
-        self.ACCESS_USER: bool = False
-        self.ACCESS_ZONE: bool = False
-        self.CREDENTIAL_DATA_INPUT: bool = False
-        self.NETWORK_SECURITY: bool = False
-        self.BITSTRING_VALUE: bool = False
-        self.CHARACTERSTRING_VALUE: bool = False
-        self.DATE_PATTERN_VALUE: bool = False
-        self.DATE_VALUE: bool = False
-        self.DATETIME_PATTERN_VALUE: bool = False
-        self.DATETIME_VALUE: bool = False
-        self.INTEGER_VALUE: bool = False
-        self.LARGE_ANALOG_VALUE: bool = False
-        self.OCTETSTRING_VALUE: bool = False
-        self.POSITIVE_INTEGER_VALUE: bool = False
-        self.TIME_PATTERN_VALUE: bool = False
-        self.TIME_VALUE: bool = False
-        self.NOTIFICATION_FORWARDER: bool = False
-        self.ALERT_ENROLLMENT: bool = False
-        self.CHANNEL: bool = False
-        self.LIGHTING_OUTPUT: bool = False
-        self.BINARY_LIGHTING_OUTPUT: bool = False
-        self.NETWORK_PORT: bool = False
-        self.ELEVATOR_GROUP: bool = False
-        self.ESCALATOR: bool = False
-        self.LIFT: bool = False
-        self.STAGING: bool = False
+
 
     def __str__(self):
         return str(self._bitstring.value.bin)
@@ -2120,8 +2038,8 @@ class BACnetObjectTypesSupported:
         self._bitstring = BACnetBitString()
         return self._bitstring.ASN1decode(buffer, offset, apdu_len)
 
-
-class BACnetLimitEnable:
+#todo add ASN1encode
+class BACnetLimitEnable(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 6
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00'))
@@ -2151,8 +2069,8 @@ class BACnetLimitEnable:
     def highlimitenable(self, a: bool):
         self._bitstring.value[1] = a
 
-
-class BACnetDaysOfWeek:
+#todo add ASN1encode
+class BACnetDaysOfWeek(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 1
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00'))
@@ -2227,8 +2145,8 @@ class BACnetDaysOfWeek:
     def sunday(self, a: bool):
         self._bitstring.value[6] = a
 
-
-class BACnetLogStatus:
+#todo add ASN1encode
+class BACnetLogStatus(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 5
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00'))
@@ -2267,8 +2185,8 @@ class BACnetLogStatus:
     def loginterrupted(self, a: bool):
         self._bitstring.value[2] = a
 
-
-class BACnetResultFlags:
+#todo add asn1encode
+class BACnetResultFlags(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 5
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00'))
@@ -2307,8 +2225,8 @@ class BACnetResultFlags:
     def moreitems(self, a: bool):
         self._bitstring.value[2] = a
 
-
-class BACnetEventTransitionBits:
+# todo add ASN1encode
+class BACnetEventTransitionBits(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 5
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00'))
@@ -2347,7 +2265,8 @@ class BACnetEventTransitionBits:
     def tonormal(self, a: bool):
         self._bitstring.value[2] = a
 
-class BACnetStatusFlags:
+#todo add ASN1encode
+class BACnetStatusFlags(ASN1encodeInterface):
     def __init__(self):
         self._unusedbits = 4
         self._bitstring: BACnetBitString = BACnetBitString(self._unusedbits, BitArray('0x00'))
@@ -2397,7 +2316,7 @@ class BACnetStatusFlags:
 
 
 # todo BACnetNotificationParameters finish ASN1decode and add ASN1encodeInterface
-class BACnetNotificationParameters:
+class BACnetNotificationParameters(ASN1encodeInterface):
     def __init__(self, value=None):
         self.value = value
 
@@ -2674,7 +2593,7 @@ class BACnetNotificationParameters:
 
 
 ##todo ReadAccessSpecification add ASN1encodeInterface
-class ReadAccessSpecification:
+class ReadAccessSpecification(ASN1encodeInterface):
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None, listofpropertyreferences: [] = None):
         self.objectidentifier = objectidentifier
         self.listofpropertyreferences = listofpropertyreferences
@@ -2712,7 +2631,7 @@ class ReadAccessSpecification:
         return leng
 
 # todo WriteAccessSpecification add ASN1encodeInterface
-class WriteAccessSpecification:
+class WriteAccessSpecification(ASN1encodeInterface):
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None, listofproperties: [] = None):
         self.objectidentifier = objectidentifier
         self.listofproperties = listofproperties
@@ -2750,7 +2669,7 @@ class WriteAccessSpecification:
         return leng
 
 # todo BACnetDeviceObjectPropertyReference add ASN1encodeInterface
-class BACnetDeviceObjectPropertyReference:
+class BACnetDeviceObjectPropertyReference(ASN1encodeInterface):
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None,
                  propertyidentifier: BACnetPropertyIdentifier = None,
                  propertyarrayindex: int = None,
@@ -2799,7 +2718,7 @@ class BACnetDeviceObjectPropertyReference:
         return leng
 
 # todo BACnetDeviceObjectPropertyValue add ASN1encodeInterface
-class BACnetDeviceObjectPropertyValue:
+class BACnetDeviceObjectPropertyValue(ASN1encodeInterface):
     def __init__(self, deviceidentifier: BACnetObjectIdentifier = None,
                  objectidentifier: BACnetObjectIdentifier = None,
                  propertyidentifier: BACnetPropertyIdentifier = None,
@@ -2875,7 +2794,7 @@ class BACnetDeviceObjectPropertyValue:
         return leng
 
 # todo BACnetDeviceObjectReference add ASN1encodeInterface
-class BACnetDeviceObjectReference:
+class BACnetDeviceObjectReference(ASN1encodeInterface):
     def __init__(self, deviceidentifier: BACnetObjectIdentifier = None,
                  objectidentifier: BACnetObjectIdentifier = None):
         self.deviceidentifier = deviceidentifier
@@ -2899,7 +2818,7 @@ class BACnetDeviceObjectReference:
         return leng
 
 # todo BACnetObjectPropertyReference add ASN1encodeInterface
-class BACnetObjectPropertyReference:
+class BACnetObjectPropertyReference(ASN1encodeInterface):
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None,
                  propertyidentifier: BACnetPropertyIdentifier = None,
                  propertyarrayindex: int = None):
@@ -2938,7 +2857,7 @@ class BACnetObjectPropertyReference:
         return leng
 
 # todo BACnetObjectPropertyValue add ASN1encodeInterface
-class BACnetObjectPropertyValue:
+class BACnetObjectPropertyValue(ASN1encodeInterface):
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None,
                  propertyidentifier: BACnetPropertyIdentifier = None,
                  propertyarrayindex: int = None,
@@ -3021,7 +2940,7 @@ class BACnetObjectPropertyValue:
         return leng
 
 # todo BACnetAccumulatorRecord add ASN1encodeInterface
-class BACnetAccumulatorRecord:
+class BACnetAccumulatorRecord(ASN1encodeInterface):
     class statuschoice(enum.IntEnum):
         normal = 0
         starting = 1
@@ -3085,7 +3004,7 @@ class BACnetAccumulatorRecord:
         return leng
 
 # todo BACnetActionCommand add ASN1encodeInterface
-class BACnetActionCommand:
+class BACnetActionCommand(ASN1encodeInterface):
     def __init__(self, device_identifier: BACnetObjectIdentifier = None,
                  object_identifier: BACnetObjectIdentifier = None,
                  property_identifier: BACnetPropertyIdentifier = None,
@@ -3218,7 +3137,7 @@ class BACnetActionCommand:
         return leng
 
 # todo BACnetActionList add ASN1encodeInterface
-class BACnetActionList:
+class BACnetActionList(ASN1encodeInterface):
     def __init__(self, action: [] = None):
         self.action = action
 
@@ -3245,7 +3164,7 @@ class BACnetActionList:
         return leng
 
 # todo BACnetWeekNDay add ASN1encodeInterface
-class BACnetWeekNDay:
+class BACnetWeekNDay(ASN1encodeInterface):
     def __init__(self, month: int = None,
                  week_of_month: int = None,
                  day_of_week: int = None):
@@ -3295,7 +3214,7 @@ class BACnetWeekNDay:
 
 
 # todo BACnetScale add ASN1encodeInterface
-class BACnetScale:
+class BACnetScale(ASN1encodeInterface):
     def __init__(self, value=None):
         self.value = value
 
@@ -3321,7 +3240,7 @@ class BACnetScale:
         return leng
 
 # todo BACnetLightingCommand add ASN1encodeInterface
-class BACnetLightingCommand:
+class BACnetLightingCommand(ASN1encodeInterface):
     def __init__(self, operation: BACnetLightingOperation = None,
                  target_level: float = None,
                  ramp_rate: float = None,
@@ -3398,7 +3317,7 @@ class BACnetLightingCommand:
         return leng
 
 # todo BACnetPrescale add ASN1encodeInterface
-class BACnetPrescale:
+class BACnetPrescale(ASN1encodeInterface):
     def __init__(self, multiplier: int = None,
                  modulo_divide: int = None):
         self.multiplier = multiplier
@@ -3438,7 +3357,7 @@ class BACnetShedLevelChoice(enum.IntEnum):
 
 
 # todo BACnetShedLevel add ASN1encodeInterface
-class BACnetShedLevel:
+class BACnetShedLevel(ASN1encodeInterface):
     def __init__(self, choice: BACnetShedLevelChoice = None,
                  value=None):
         self.choice = choice
@@ -4042,8 +3961,8 @@ class BACnetSecurityKeySet(ASN1encodeInterface):
 
         return leng
 
-# todo BACnetDestination add
-class BACnetDestination:
+# todo BACnetDestination add ASN1encodeInterface
+class BACnetDestination(ASN1encodeInterface):
     def __init__(self, valid_days:BACnetDaysOfWeek = None,
                  from_time:time = None,
                  to_time:time = None,
@@ -4457,19 +4376,125 @@ class BACnetAuthenticationFactor:
         return leng
 
 # todo BACnetAuthenticationFactorFormat add ASN1decode, ASN1encodeInterface
+class BACnetAuthenticationFactorFormat:
+    def __init__(self, format_type:BACnetAuthenticationFactorType = None,
+                 vendor_id:int = None,
+                 vendor_format:int = None):
+        self.format_type = format_type
+        self.vendor_id = vendor_id
+        self.vendor_format = vendor_format
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
 # todo BACnetAuthenticationPolicy add ASN1decode, ASN1encodeInterface
+class BACnetAuthenticationPolicy:
+    class policy:
+        def __init__(self, credential_data_input:BACnetDeviceObjectReference = None,
+                     index: int = None):
+            self.credential_data_input = credential_data_input
+            self.index = index
+
+    def __init__(self, policies:[] = None,
+                 order_enforced:bool = None,
+                 timeout:int = None):
+        self.policies = policies
+        self.order_enforced = order_enforced
+        self.timeout = timeout
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetBDTEntry add ASN1decode, ASN1encodeInterface
-# todo BACnetCalendarEntry add ASN1decode, ASN1encodeInterface
+
 # todo BACnetChannelValue add ASN1decode, ASN1encodeInterface
-# todo BACnetClientCOV add ASN1decode, ASN1encodeInterface
-# todo BACnetCOVMultipleSubscription add ASN1decode, ASN1encodeInterface
+class BACnetChannelValue:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetCOVSubscription add ASN1decode, ASN1encodeInterface
+class BACnetCOVSubscription:
+    def __init__(self, recipient:BACnetRecipientProcess = None,
+                 monitored_property_reference:BACnetObjectPropertyReference = None,
+                 issue_confirmed_notifications:bool = None,
+                 time_remaining:int = None,
+                 cov_increment:float = None):
+        self.recipient = recipient
+        self.monitored_property_reference = monitored_property_reference
+        self.issue_confirmed_notifications = issue_confirmed_notifications
+        self.time_remaining = time_remaining
+        self.cov_increment = cov_increment
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetCredentialAuthenticationFactor add ASN1decode, ASN1encodeInterface
+class BACnetCredentialAuthenticationFactor:
+    def __init__(self, disable:BACnetAccessAuthenticationFactorDisable = None,
+                 authentication_factor:BACnetAuthenticationFactor = None):
+        self.disable = disable
+        self.authentication_factor = authentication_factor
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetDailySchedule add ASN1decode, ASN1encodeInterface
-# todo BACnetEventLogRecord add ASN1decode, ASN1encodeInterface
+class BACnetDailySchedule:
+    def __init__(self, day_schedule:[] = None):
+        self.day_schedule = day_schedule
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetEventNotificationSubscription add ASN1decode, ASN1encodeInterface
+class BACnetEventNotificationSubscription:
+    def __init__(self, recipient:BACnetRecipient = None,
+                 process_identifier:int = None,
+                 issue_confirmed_notifications:bool = None,
+                 time_remaining:int = None):
+        self.recipient = recipient
+        self.process_identifier = process_identifier
+        self.issue_confirmed_notifications = issue_confirmed_notifications
+        self.time_remaining = time_remaining
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetEventParameter add ASN1decode, ASN1encodeInterface
+class BACnetEventParameter:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
 # todo BACnetFaultParameter add ASN1decode, ASN1encodeInterface
+class BACnetFaultParameter:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetFDTEntry add ASN1decode, ASN1encodeInterface
 # todo BACnetGroupChannelValue add ASN1decode, ASN1encodeInterface
 # todo BACnetLandingCallStatus add ASN1decode, ASN1encodeInterface
@@ -4477,10 +4502,12 @@ class BACnetAuthenticationFactor:
 # todo BACnetLiftCarCallList add ASN1decode, ASN1encodeInterface
 # todo BACnetLogData add ASN1decode, ASN1encodeInterface
 # todo BACnetLogMultipleRecord add ASN1decode, ASN1encodeInterface
-# todo BACnetOptionalBinaryPV add
-# todo BACnetOptionalCharacterString add
-# todo BACnetOptionalREAL add
-# todo BACnetOptionalUnsigned add
+# todo BACnetCOVMultipleSubscription add ASN1decode, ASN1encodeInterface
+# todo BACnetClientCOV add ASN1decode, ASN1encodeInterface
+# todo BACnetOptionalBinaryPV add ASN1decode, ASN1encodeInterface
+# todo BACnetOptionalCharacterString add  ASN1decode, ASN1encodeInterface
+# todo BACnetOptionalREAL add ASN1decode, ASN1encodeInterface
+# todo BACnetOptionalUnsigned add ASN1decode, ASN1encodeInterface
 
 class BacnetBvlcFunctions(enum.IntEnum):
     BVLC_RESULT = 0
