@@ -30,7 +30,7 @@ import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 class ASN1encodeInterface:
-    def ASN1encode(self):
+    def ASN1encode(self) -> bytes:
         pass
 
 class Network_Priority(enum.IntEnum):
@@ -603,7 +603,28 @@ class BACnetValue(ASN1encodeInterface):
                         self.Value = BACnetDateRange()
                         leng -= 1
                         decode_len = self.Value.ASN1decode(buffer, offset+leng, apdu_len)
-
+                    elif prop_id == BACnetPropertyIdentifier.MINIMUM_VALUE_TIMESTAMP or\
+                            prop_id == BACnetPropertyIdentifier.MAXIMUM_VALUE_TIMESTAMP or\
+                            prop_id == BACnetPropertyIdentifier.CHANGE_OF_STATE_TIME or\
+                            prop_id == BACnetPropertyIdentifier.TIME_OF_STATE_COUNT_RESET or\
+                            prop_id == BACnetPropertyIdentifier.TIME_OF_ACTIVE_TIME_RESET or\
+                            prop_id == BACnetPropertyIdentifier.MODIFICATION_DATE or\
+                            prop_id == BACnetPropertyIdentifier.UPDATE_TIME or\
+                            prop_id == BACnetPropertyIdentifier.COUNT_CHANGE_TIME or\
+                            prop_id == BACnetPropertyIdentifier.START_TIME or\
+                            prop_id == BACnetPropertyIdentifier.STOP_TIME or\
+                            prop_id == BACnetPropertyIdentifier.LAST_CREDENTIAL_ADDED_TIME or\
+                            prop_id == BACnetPropertyIdentifier.LAST_CREDENTIAL_REMOVED_TIME or\
+                            prop_id == BACnetPropertyIdentifier.ACTIVATION_TIME or\
+                            prop_id == BACnetPropertyIdentifier.EXPIRY_TIME or\
+                            prop_id == BACnetPropertyIdentifier.LAST_USE_TIME or\
+                            prop_id == BACnetPropertyIdentifier.TIME_OF_STRIKE_COUNT_RESET or\
+                            prop_id == BACnetPropertyIdentifier.VALUE_CHANGE_TIME or\
+                            ((obj_type == BACnetObjectType.DateTime_Value or obj_type == BACnetObjectType.DateTime_Pattern_Value) and (prop_id == BACnetPropertyIdentifier.PRESENT_VALUE or prop_id == BACnetPropertyIdentifier.RELINQUISH_DEFAULT)):
+                        self.Tag = None
+                        self.Value = BACnetDateTime()
+                        leng -= 1
+                        decode_len = self.Value.ASN1decode(buffer, offset + leng, apdu_len)
                     else:
                         (decode_len, date_value) = ASN1.decode_date_safe(buffer, offset+leng, len_value_type)
                         self.Value = date_value;
@@ -614,7 +635,8 @@ class BACnetValue(ASN1encodeInterface):
                     #context specific
                     if prop_id == BACnetPropertyIdentifier.LAST_KEY_SERVER or \
                             prop_id == BACnetPropertyIdentifier.MANUAL_SLAVE_ADDRESS_BINDING or \
-                            prop_id == BACnetPropertyIdentifier.SLAVE_ADDRESS_BINDING:
+                            prop_id == BACnetPropertyIdentifier.SLAVE_ADDRESS_BINDING or\
+                            prop_id == BACnetPropertyIdentifier.DEVICE_ADDRESS_BINDING:
 
                         self.Tag = None
                         self.Value = BACnetAddressBinding()
@@ -629,7 +651,8 @@ class BACnetValue(ASN1encodeInterface):
                 leng += decode_len
 
         else:
-            if prop_id == BACnetPropertyIdentifier.BACNET_IP_GLOBAL_ADDRESS or prop_id == BACnetPropertyIdentifier.FD_BBMD_ADDRESS:
+            if prop_id == BACnetPropertyIdentifier.BACNET_IP_GLOBAL_ADDRESS or\
+                    prop_id == BACnetPropertyIdentifier.FD_BBMD_ADDRESS:
                 self.Value = BACnetHostNPort()
                 leng += self.Value.ASN1decode(buffer, offset+leng, apdu_len-leng)
             elif prop_id == BACnetPropertyIdentifier.UTC_TIME_SYNCHRONIZATION_RECIPIENTS or\
@@ -640,8 +663,126 @@ class BACnetValue(ASN1encodeInterface):
                 leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
             elif prop_id == BACnetPropertyIdentifier.KEY_SETS:
                 self.Value = BACnetSecurityKeySet()
-
                 leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.EVENT_TIME_STAMPS or\
+                    prop_id == BACnetPropertyIdentifier.LAST_COMMAND_TIME or\
+                    prop_id == BACnetPropertyIdentifier.COMMAND_TIME_ARRAY or\
+                    prop_id == BACnetPropertyIdentifier.LAST_RESTORE_TIME or\
+                    prop_id == BACnetPropertyIdentifier.TIME_OF_DEVICE_RESTART or\
+                    prop_id == BACnetPropertyIdentifier.ACCESS_EVENT_TIME or\
+                    prop_id == BACnetPropertyIdentifier.UPDATE_TIME:
+                #UPDATE_TIME once in context specific BACnetTimeStamp and non context specific BACnetDateTime
+                self.Value = BACnetTimeStamp()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.LIST_OF_GROUP_MEMBERS:
+                self.Value = ReadAccessSpecification()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.LIST_OF_OBJECT_PROPERTY_REFERENCES:
+                self.Value = BACnetDeviceObjectPropertyReference()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.MEMBER_OF or\
+                    prop_id == BACnetPropertyIdentifier.ZONE_MEMBERS or\
+                    prop_id == BACnetPropertyIdentifier.DOOR_MEMBERS or\
+                    prop_id == BACnetPropertyIdentifier.SUBORDINATE_LIST or\
+                    prop_id == BACnetPropertyIdentifier.REPRESENTS or\
+                    prop_id == BACnetPropertyIdentifier.ACCESS_EVENT_CREDENTIAL or\
+                    prop_id == BACnetPropertyIdentifier.ACCESS_DOORS or\
+                    prop_id == BACnetPropertyIdentifier.ZONE_TO or\
+                    prop_id == BACnetPropertyIdentifier.ZONE_FROM or\
+                    prop_id == BACnetPropertyIdentifier.CREDENTIALS_IN_ZONE or\
+                    prop_id == BACnetPropertyIdentifier.LAST_CREDENTIAL_ADDED or\
+                    prop_id == BACnetPropertyIdentifier.LAST_CREDENTIAL_REMOVED or\
+                    prop_id == BACnetPropertyIdentifier.ENTRY_POINTS or\
+                    prop_id == BACnetPropertyIdentifier.EXIT_POINTS or\
+                    prop_id == BACnetPropertyIdentifier.MEMBERS or\
+                    prop_id == BACnetPropertyIdentifier.CREDENTIALS or\
+                    prop_id == BACnetPropertyIdentifier.ACCOMPANIMENT or\
+                    prop_id == BACnetPropertyIdentifier.BELONGS_TO or\
+                    prop_id == BACnetPropertyIdentifier.LAST_ACCESS_POINT or\
+                    prop_id == BACnetPropertyIdentifier.ENERGY_METER_REF:
+                self.Value = BACnetDeviceObjectReference()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.EVENT_ALGORITHM_INHIBIT_REF or\
+                    prop_id == BACnetPropertyIdentifier.INPUT_REFERENCE or\
+                    prop_id == BACnetPropertyIdentifier.MANIPULATED_VARIABLE_REFERENCE or\
+                    prop_id == BACnetPropertyIdentifier.CONTROLLED_VARIABLE_REFERENCE:
+                self.Value = BACnetObjectPropertyReference()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.LOGGING_RECORD:
+                self.Value = BACnetAccumulatorRecord()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.ACTION:
+                #exists once enumerated (non context specific) and context specific
+                self.Value = BACnetActionList()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.SCALE:
+                self.Value = BACnetScale()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.LIGHTING_COMMAND:
+                self.Value = BACnetLightingCommand()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.PRESCALE:
+                self.Value = BACnetPrescale()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.REQUESTED_SHED_LEVEL or\
+                    prop_id == BACnetPropertyIdentifier.EXPECTED_SHED_LEVEL or\
+                    prop_id == BACnetPropertyIdentifier.ACTUAL_SHED_LEVEL:
+                self.Value = BACnetShedLevel()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.LOG_BUFFER and obj_type == BACnetObjectType.TrendLog:
+                self.Value = BACnetLogRecord()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.DATE_LIST:
+                self.Value = BACnetCalendarEntry()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.LOG_BUFFER and obj_type == BACnetObjectType.Event_Log:
+                self.Value = BACnetEventLogRecord()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.PRESENT_VALUE and obj_type == BACnetObjectType.Group:
+                self.Value = ReadAccessResult()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.NEGATIVE_ACCESS_RULES or\
+                    prop_id == BACnetPropertyIdentifier.POSITIVE_ACCESS_RULES:
+                self.Value = BACnetAccessRule()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.TAGS:
+                self.Value = BACnetNameValue()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.SUBORDINATE_TAGS:
+                self.Value = BACnetNameValueCollection()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.NETWORK_ACCESS_SECURITY_POLICIES:
+                self.Value = BACnetNetworkSecurityPolicy()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.PORT_FILTER:
+                self.Value = BACnetPortPermission()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.PRIORITY_ARRAY:
+                self.Value = BACnetPriorityArray()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.PROCESS_IDENTIFIER_FILTER:
+                self.Value = BACnetProcessIdSelection()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif obj_type == BACnetObjectType.Global_Group and prop_id == BACnetPropertyIdentifier.PRESENT_VALUE:
+                self.Value = BACnetPropertyAccessResult()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.SETPOINT_REFERENCE:
+                self.Value = BACnetSetpointReference()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.EXCEPTION_SCHEDULE:
+                self.Value = BACnetSpecialEvent()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.STATE_CHANGE_VALUES:
+                self.Value = BACnetTimerStateChangeValue()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.VALUE_SOURCE or\
+                    prop_id == BACnetPropertyIdentifier.VALUE_SOURCE_ARRAY:
+                self.Value = BACnetValueSource()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.VIRTUAL_MAC_ADDRESS_TABLE:
+                self.Value = BACnetVMACEntry()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+
             else:
                 logging.debug("context specific!!!! needs to be addded")
                 leng = apdu_len
@@ -4054,7 +4195,7 @@ class BACnetRouterEntry(ASN1encodeInterface):
 
         return leng
 
-# todo BACnetAccessRule add ASN1encodeInterface
+# todo BACnetAccessRule add ASN1decode, ASN1encodeInterface
 class BACnetAccessRule(ASN1encodeInterface):
     class timerangespecifierChoice(enum.IntEnum):
         specified = 0
@@ -4080,66 +4221,199 @@ class BACnetAccessRule(ASN1encodeInterface):
 
         return leng
 
+# todo BACnetNameValue add ASN1decode, ASN1encodeInterface
+class BACnetNameValue:
+    def __init__(self, name:str = None,
+                 value:BACnetValue = None):
+        self.name = name
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetNameValueCollection add ASN1decode, ASN1encodeInterface
+class BACnetNameValueCollection:
+    def __init__(self, members:[] = None):
+        self.members = members
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetNetworkSecurityPolicy add ASN1decode, ASN1encodeInterface
+class BACnetNetworkSecurityPolicy:
+    def __init__(self, port_id:int = None,
+                 security_level:BACnetSecurityPolicy = None):
+        self.port_id = port_id
+        self.security_level = security_level
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
 
 
+# todo BACnetPortPermission add ASN1decode, ASN1encodeInterface
+class BACnetPortPermission:
+    def __init__(self, port_id:int = None,
+                 enabled:bool = None):
+        self.port_id = port_id
+        self.enabled = enabled
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
 
 
+# todo BACnetPriorityArray add ASN1decode, ASN1encodeInterface
+class BACnetPriorityArray:
+    # SEQUENCE SIZE (16) OF BACnetPriorityValue
+    def __init__(self, value:[16] = None):
+        self.value = value
 
-# todo BACnetNameValue add
-# todo BACnetNameValueCollection add
-# todo BACnetNetworkSecurityPolicy add
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+# todo BACnetPriorityValue add ASN1decode, ASN1encodeInterface
+class BACnetPriorityValue:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetProcessIdSelection add ASN1decode, ASN1encodeInterface
+class BACnetProcessIdSelection:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetPropertyAccessResult add ASN1decode, ASN1encodeInterface
+class BACnetPropertyAccessResult:
+    def __init__(self, object_identifier:BACnetObjectIdentifier = None,
+                 property_identifier:BACnetPropertyIdentifier = None,
+                 property_array_index:int = None,
+                 device_identifier:BACnetObjectIdentifier = None,
+                 access_result = None):
+        self.object_identifier  = object_identifier
+        self.property_identifier = property_identifier
+        self.property_array_index = property_array_index
+        self.device_identifier  = device_identifier
+        self.access_result  = access_result
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetSetpointReference add ASN1decode, ASN1encodeInterface
+class BACnetSetpointReference:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetSpecialEvent add ASN1decode, ASN1encodeInterface
+class BACnetSpecialEvent:
+    def __init__(self, period = None,
+                 list_of_time_values:[] = None,
+                 event_priority:int = None):
+        self.period = period
+        self.list_of_time_values = list_of_time_values
+        self.event_priority = event_priority
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetTimerStateChangeValue add ASN1decode, ASN1encodeInterface
+class BACnetTimerStateChangeValue:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+# todo BACnetTimeValue add ASN1decode, ASN1encodeInterface
+class BACnetTimeValue:
+    def __init__(self, Time:time = None,
+                 value = None):
+        self.Time = Time
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+
+# todo BACnetValueSource add ASN1decode, ASN1encodeInterface
+class BACnetValueSource:
+    def __init__(self, value = None):
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+# todo BACnetVMACEntry add ASN1decode, ASN1encodeInterface
+class BACnetVMACEntry:
+    def __init__(self, virtual_mac_address = None, native_mac_address = None):
+        self.virtual_mac_address = virtual_mac_address
+        self.native_mac_address = native_mac_address
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
+# todo BACnetVTSession add ASN1decode, ASN1encodeInterface
+# todo BACnetAccessThreatLevel? add ASN1decode, ASN1encodeInterface
+# todo BACnetAssignedAccessRights add ASN1decode, ASN1encodeInterface
+# todo BACnetAssignedLandingCalls add ASN1decode, ASN1encodeInterface
+# todo BACnetAuthenticationFactor add ASN1decode, ASN1encodeInterface
+# todo BACnetAuthenticationFactorFormat add ASN1decode, ASN1encodeInterface
+# todo BACnetAuthenticationPolicy add ASN1decode, ASN1encodeInterface
+# todo BACnetBDTEntry add ASN1decode, ASN1encodeInterface
+# todo BACnetCalendarEntry add ASN1decode, ASN1encodeInterface
+# todo BACnetChannelValue add ASN1decode, ASN1encodeInterface
+# todo BACnetClientCOV add ASN1decode, ASN1encodeInterface
+# todo BACnetCOVMultipleSubscription add ASN1decode, ASN1encodeInterface
+# todo BACnetCOVSubscription add ASN1decode, ASN1encodeInterface
+# todo BACnetCredentialAuthenticationFactor add ASN1decode, ASN1encodeInterface
+# todo BACnetDailySchedule add ASN1decode, ASN1encodeInterface
+# todo BACnetEventLogRecord add ASN1decode, ASN1encodeInterface
+# todo BACnetEventNotificationSubscription add ASN1decode, ASN1encodeInterface
+# todo BACnetEventParameter add ASN1decode, ASN1encodeInterface
+# todo BACnetFaultParameter add ASN1decode, ASN1encodeInterface
+# todo BACnetFDTEntry add ASN1decode, ASN1encodeInterface
+# todo BACnetGroupChannelValue add ASN1decode, ASN1encodeInterface
+# todo BACnetLandingCallStatus add ASN1decode, ASN1encodeInterface
+# todo BACnetLandingDoorStatus add ASN1decode, ASN1encodeInterface
+# todo BACnetLiftCarCallList add ASN1decode, ASN1encodeInterface
+# todo BACnetLogData add ASN1decode, ASN1encodeInterface
+# todo BACnetLogMultipleRecord add ASN1decode, ASN1encodeInterface
+
 # todo BACnetOptionalBinaryPV add
 # todo BACnetOptionalCharacterString add
 # todo BACnetOptionalREAL add
 # todo BACnetOptionalUnsigned add
-# todo BACnetPortPermission add
-# todo BACnetPriorityArray add
-# todo BACnetPriorityValue add
-# todo BACnetProcessIdSelection add
-# todo BACnetPropertyAccessResult add
-
-
-
-
-# todo BACnetSetpointReference add
-# todo BACnetSpecialEvent add
-# todo BACnetTimerStateChangeValue add
-# todo BACnetTimeValue add
-# todo BACnetValueSource add
-# todo BACnetVMACEntry add
-# todo BACnetVTSession add
-
-# todo BACnetAccessThreatLevel? add
-
-# todo BACnetAssignedAccessRights add
-# todo BACnetAssignedLandingCalls add
-# todo BACnetAuthenticationFactor add
-# todo BACnetAuthenticationFactorFormat add
-# todo BACnetAuthenticationPolicy add
-# todo BACnetBDTEntry add
-# todo BACnetCalendarEntry add
-# todo BACnetChannelValue add
-# todo BACnetClientCOV add
-# todo BACnetCOVMultipleSubscription add
-# todo BACnetCOVSubscription add
-# todo BACnetCredentialAuthenticationFactor add
-# todo BACnetDailySchedule add
-
-
-# todo BACnetEventLogRecord add
-# todo BACnetEventNotificationSubscription add
-# todo BACnetEventParameter add
-# todo BACnetFaultParameter add
-# todo BACnetFDTEntry add
-# todo BACnetGroupChannelValue add
-
-
-
-# todo BACnetLandingCallStatus add
-# todo BACnetLandingDoorStatus add
-# todo BACnetLiftCarCallList add
-# todo BACnetLogData add
-# todo BACnetLogMultipleRecord add
 
 class BacnetBvlcFunctions(enum.IntEnum):
     BVLC_RESULT = 0
