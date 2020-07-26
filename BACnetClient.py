@@ -590,16 +590,19 @@ class BacnetClient:
 
     def ReadPropertyRequest(self,device_identifier:BACnetObjectIdentifier = None, adr:BACnetAddress = None, rq: ReadProperty_Request = None):
 
-        npdu = NPDU(destination=BACnetAddress(net_type=BACnetNetworkType.IPV4, address=device_identifier, network_number=20))
+        npdu = NPDU(destination=BACnetAddress(net_type=BACnetNetworkType.IPV4, address=device_identifier, network_number=adr.network_number))
         npdu.control.data_expecting_reply = True
         npdu.control.network_priority.Normal_Message = True
+
         apdu = APDU(pdu_type=BacnetPduTypes.PDU_TYPE_CONFIRMED_SERVICE_REQUEST,
                         service_choice=BACnetConfirmedServiceChoice.READ_PROPERTY,
                         segmented_response_accepted=False,
                         max_segments_accepted=BACnetSegmentation.NO_SEGMENTATION,
                         max_apdu_length_accepted=BacnetMaxAdpu.MAX_APDU1476,
-                        invoke_id=0
+                        invoke_id=self._m_invoke_id
                         )
-
+        self._m_invoke_id += 1
+        if self._m_invoke_id > 255:
+            self._m_invoke_id = 0
         buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
         self.transport.send(buffer, self.transport.headerlength, len(buffer), adr, False, 0)

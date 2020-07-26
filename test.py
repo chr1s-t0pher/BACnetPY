@@ -1,4 +1,3 @@
-
 #MIT License
 #
 #Copyright (c) 2020 chr1s-t0pher
@@ -34,7 +33,7 @@ def recieved_WHOIS(sender : BacnetClient, adr : BACnetAddress, rq : WhoIs_Reques
 def recieved_IAM(sender : BacnetClient, adr : BACnetAddress, rq : IAm_Request):
     print("recieved IAM")
     sender.ReadPropertyRequest(BACnetObjectIdentifier(BACnetObjectType.Device,1),
-        BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=0),
+        BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=20),
         ReadProperty_Request(
             BACnetObjectIdentifier(BACnetObjectType.Notification_Class, 0),
                              BACnetPropertyIdentifier.RECIPIENT_LIST))

@@ -32,13 +32,13 @@ from netifaces import interfaces, ifaddresses, AF_INET
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-class UDPIPProtocol:
+class UDPIPProtocol(asyncio.Protocol):
 
-    def __init__(self, local_endpoint : str = "192.168.0.44", port : int = 47808):
+    def __init__(self, local_endpoint : str = "192.168.0.44", port : int = 47808, max_payload:int = 1472):
         self.port = port
         self.loop = asyncio.get_event_loop()
         self.type = None
-        self.headerlength :int = BVLC.BVLC_HEADER_LENGTH
+        self.headerlength:int = BVLC.BVLC_HEADER_LENGTH
         self.maxbufferlength = None
         self.maxadpulength : BacnetMaxAdpu = BacnetMaxAdpu(BacnetMaxAdpu.MAX_APDU1024)
         self.MaxInfoFrames = None
@@ -47,37 +47,43 @@ class UDPIPProtocol:
         self._m_local_endpoint = local_endpoint
         self.events = Events()
         self.transport = None
+        self.m_port = port
+        self.m_max_payload = max_payload
 
     def connection_made(self, transport):
-        print('started')
+        logging.info('started')
         self.transport = transport
         sock = transport.get_extra_info("socket")
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        #self.broadcast()
+
+    def connection_lost(self, exc):
+        self.connection_lost_received.set()
 
     def datagram_received(self, data, addr):
         logging.info('data received:'+str(data) + str(addr))
         asyncio.ensure_future(self.OnReceiveData(data, addr))
 
     async def OnReceiveData(self, datagram, address):
-        rx = 0
         rx = len(datagram)
-        BVLC.BVLC_HEADER_LENGTH
-
+        #BVLC.BVLC_HEADER_LENGTH
 
         if rx < BVLC.BVLC_HEADER_LENGTH or rx == 0:
-            print("garbage")
+            logging.debug("recieved garbage")
         else:
             (HEADER_LENGTH, function, msg_length) = BVLC.Decode(datagram, 0)
+
+            remote_address = BACnetAddress(net_type=BACnetNetworkType.IPV4, address=address[0]+":"+str(address[1]))
+
             if HEADER_LENGTH != -1:
                 if function == BacnetBvlcFunctions.BVLC_RESULT:
                     print("Receive Register as Foreign Device Response")
                 if function == BacnetBvlcFunctions.BVLC_FORWARDED_NPDU:
+                    #fixme BVLC_FORWARDED_NPDU
                     print("BVLC_FORWARDED_NPDU do something!!")
                 if function == BacnetBvlcFunctions.BVLC_ORIGINAL_UNICAST_NPDU or function == BacnetBvlcFunctions.BVLC_ORIGINAL_BROADCAST_NPDU or function == BacnetBvlcFunctions.BVLC_FORWARDED_NPDU:
 
-                    self.events.on_MessageRecieved(self, datagram, HEADER_LENGTH, rx - HEADER_LENGTH, address)
+                    self.events.on_MessageRecieved(self, datagram, HEADER_LENGTH, rx - HEADER_LENGTH, remote_address)
 
 
 
@@ -89,12 +95,9 @@ class UDPIPProtocol:
         if address.network_number == 0xFFFF:
             function = BacnetBvlcFunctions.BVLC_ORIGINAL_BROADCAST_NPDU
 
-
         buffer =  BVLC.encode(offset - BVLC.BVLC_HEADER_LENGTH, function , full_length) + buffer
 
         self.transport.sendto(buffer, (address.IP_and_port()))
-
-
 
     def getbroadcastaddress(self) -> BACnetAddress:
         broadcast = "255.255.255.255"
