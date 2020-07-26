@@ -529,6 +529,16 @@ class BACnetValue(ASN1encodeInterface):
                         self.Value = BACnetRouterEntry()
                         leng -= 1
                         decode_len = self.Value.ASN1decode(buffer, offset + leng, apdu_len)
+                    elif prop_id == BACnetPropertyIdentifier.ACTIVE_VT_SESSIONS:
+                        self.Tag = None
+                        self.Value = BACnetVTSession()
+                        leng -= 1
+                        decode_len = self.Value.ASN1decode(buffer, offset + leng, apdu_len)
+                    elif prop_id == BACnetPropertyIdentifier.THREAT_LEVEL or prop_id == BACnetPropertyIdentifier.THREAT_AUTHORITY:
+                        self.Tag = None
+                        self.Value = BACnetAccessThreatLevel()
+                        leng -= 1
+                        decode_len = self.Value.ASN1decode(buffer, offset + leng, apdu_len)
                     else:
                         (decode_len, uint_value) = ASN1.decode_unsigned(buffer, offset+leng, len_value_type)
                         self.Value = uint_value
@@ -781,6 +791,16 @@ class BACnetValue(ASN1encodeInterface):
                 leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
             elif prop_id == BACnetPropertyIdentifier.VIRTUAL_MAC_ADDRESS_TABLE:
                 self.Value = BACnetVMACEntry()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.ASSIGNED_ACCESS_RIGHTS:
+                self.Value = BACnetAssignedAccessRights()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.ASSIGNED_LANDING_CALLS:
+                self.Value = BACnetAssignedLandingCalls()
+                leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
+            elif prop_id == BACnetPropertyIdentifier.ACCESS_EVENT_AUTHENTICATION_FACTOR or\
+                    (obj_type == BACnetObjectType.Credential_Data_Input and prop_id == BACnetPropertyIdentifier.PRESENT_VALUE):
+                self.Value = BACnetAuthenticationFactor()
                 leng += self.Value.ASN1decode(buffer, offset + leng, apdu_len - leng)
 
             else:
@@ -2327,7 +2347,6 @@ class BACnetEventTransitionBits:
     def tonormal(self, a: bool):
         self._bitstring.value[2] = a
 
-
 class BACnetStatusFlags:
     def __init__(self):
         self._unusedbits = 4
@@ -2692,7 +2711,6 @@ class ReadAccessSpecification:
 
         return leng
 
-
 # todo WriteAccessSpecification add ASN1encodeInterface
 class WriteAccessSpecification:
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None, listofproperties: [] = None):
@@ -2730,7 +2748,6 @@ class WriteAccessSpecification:
         leng += 1
 
         return leng
-
 
 # todo BACnetDeviceObjectPropertyReference add ASN1encodeInterface
 class BACnetDeviceObjectPropertyReference:
@@ -2780,7 +2797,6 @@ class BACnetDeviceObjectPropertyReference:
             leng += leng1
 
         return leng
-
 
 # todo BACnetDeviceObjectPropertyValue add ASN1encodeInterface
 class BACnetDeviceObjectPropertyValue:
@@ -2858,7 +2874,6 @@ class BACnetDeviceObjectPropertyValue:
 
         return leng
 
-
 # todo BACnetDeviceObjectReference add ASN1encodeInterface
 class BACnetDeviceObjectReference:
     def __init__(self, deviceidentifier: BACnetObjectIdentifier = None,
@@ -2882,7 +2897,6 @@ class BACnetDeviceObjectReference:
         leng += leng1
 
         return leng
-
 
 # todo BACnetObjectPropertyReference add ASN1encodeInterface
 class BACnetObjectPropertyReference:
@@ -2922,7 +2936,6 @@ class BACnetObjectPropertyReference:
                 leng += leng1
 
         return leng
-
 
 # todo BACnetObjectPropertyValue add ASN1encodeInterface
 class BACnetObjectPropertyValue:
@@ -3007,7 +3020,6 @@ class BACnetObjectPropertyValue:
 
         return leng
 
-
 # todo BACnetAccumulatorRecord add ASN1encodeInterface
 class BACnetAccumulatorRecord:
     class statuschoice(enum.IntEnum):
@@ -3071,7 +3083,6 @@ class BACnetAccumulatorRecord:
         else:
             return -1
         return leng
-
 
 # todo BACnetActionCommand add ASN1encodeInterface
 class BACnetActionCommand:
@@ -3206,7 +3217,6 @@ class BACnetActionCommand:
 
         return leng
 
-
 # todo BACnetActionList add ASN1encodeInterface
 class BACnetActionList:
     def __init__(self, action: [] = None):
@@ -3233,7 +3243,6 @@ class BACnetActionList:
                 self.action.append(b_value)
             leng += 1
         return leng
-
 
 # todo BACnetWeekNDay add ASN1encodeInterface
 class BACnetWeekNDay:
@@ -3311,7 +3320,6 @@ class BACnetScale:
             return -1
         return leng
 
-
 # todo BACnetLightingCommand add ASN1encodeInterface
 class BACnetLightingCommand:
     def __init__(self, operation: BACnetLightingOperation = None,
@@ -3388,7 +3396,6 @@ class BACnetLightingCommand:
                 leng += leng1
 
         return leng
-
 
 # todo BACnetPrescale add ASN1encodeInterface
 class BACnetPrescale:
@@ -3483,7 +3490,6 @@ class BACnetLogRecordChoice(enum.IntEnum):
     failure = 8
     time_change = 9
     any_value = 10
-
 
 # todo BACnetLogRecord add ASN1encodeInterface
 class BACnetLogRecord(ASN1encodeInterface):
@@ -3704,7 +3710,6 @@ class BACnetReadResult(ASN1encodeInterface):
                     return -1
         return leng
 
-
 # todo ReadAccessResult add ASN1encodeInterface
 class ReadAccessResult(ASN1encodeInterface):
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None,
@@ -3790,10 +3795,6 @@ class BACnetAddress(ASN1encodeInterface):
             return -1
 
         return leng
-
-
-        #ipv4 6 octet
-        #IP_Address +
 
 # todo BACnetAddressBinding add ASN1encodeInterface
 class BACnetAddressBinding(ASN1encodeInterface):
@@ -4268,7 +4269,6 @@ class BACnetPortPermission:
 
         return leng
 
-
 # todo BACnetPriorityArray add ASN1decode, ASN1encodeInterface
 class BACnetPriorityArray:
     # SEQUENCE SIZE (16) OF BACnetPriorityValue
@@ -4279,6 +4279,7 @@ class BACnetPriorityArray:
         leng = 0
 
         return leng
+
 # todo BACnetPriorityValue add ASN1decode, ASN1encodeInterface
 class BACnetPriorityValue:
     def __init__(self, value = None):
@@ -4350,6 +4351,7 @@ class BACnetTimerStateChangeValue:
         leng = 0
 
         return leng
+
 # todo BACnetTimeValue add ASN1decode, ASN1encodeInterface
 class BACnetTimeValue:
     def __init__(self, Time:time = None,
@@ -4362,7 +4364,6 @@ class BACnetTimeValue:
 
         return leng
 
-
 # todo BACnetValueSource add ASN1decode, ASN1encodeInterface
 class BACnetValueSource:
     def __init__(self, value = None):
@@ -4372,6 +4373,7 @@ class BACnetValueSource:
         leng = 0
 
         return leng
+
 # todo BACnetVMACEntry add ASN1decode, ASN1encodeInterface
 class BACnetVMACEntry:
     def __init__(self, virtual_mac_address = None, native_mac_address = None):
@@ -4384,10 +4386,76 @@ class BACnetVMACEntry:
         return leng
 
 # todo BACnetVTSession add ASN1decode, ASN1encodeInterface
+class BACnetVTSession:
+    def __init__(self, local_vt_session_id:int = None,
+                 remote_vt_session_id:int = None,
+                 remote_vt_address:BACnetAddress = None):
+        self.local_vt_session_id  = local_vt_session_id
+        self.remote_vt_session_id = remote_vt_session_id
+        self.remote_vt_address = remote_vt_address
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetAccessThreatLevel? add ASN1decode, ASN1encodeInterface
+class BACnetAccessThreatLevel:
+    def __init__(self, value:int = None):
+        self.value  = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetAssignedAccessRights add ASN1decode, ASN1encodeInterface
+class BACnetAssignedAccessRights:
+    def __init__(self, assigned_access_rights:BACnetDeviceObjectReference = None,
+                 enable:bool = None):
+        self.assigned_access_rights  = assigned_access_rights
+        self.enable = enable
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetAssignedLandingCalls add ASN1decode, ASN1encodeInterface
+class BACnetAssignedLandingCalls:
+    class landing_call:
+        def __init__(self, floor_number:int = None,
+                     direction:BACnetLiftCarDirection = None):
+            self.floor_number = floor_number
+            self.direction = direction
+
+        def ASN1decode(self, buffer, offset, apdu_len):
+            leng = 0
+
+            return leng
+
+    def __init__(self, landing_calls:[] = None):
+        self.landing_calls   = landing_calls
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetAuthenticationFactor add ASN1decode, ASN1encodeInterface
+class BACnetAuthenticationFactor:
+    def __init__(self, format_type:BACnetAuthenticationFactorType = None,
+                 format_class:int = None,
+                 value:bytes = None):
+        self.format_type = format_type
+        self.format_class = format_class
+        self.value = value
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+
+        return leng
+
 # todo BACnetAuthenticationFactorFormat add ASN1decode, ASN1encodeInterface
 # todo BACnetAuthenticationPolicy add ASN1decode, ASN1encodeInterface
 # todo BACnetBDTEntry add ASN1decode, ASN1encodeInterface
@@ -4409,7 +4477,6 @@ class BACnetVMACEntry:
 # todo BACnetLiftCarCallList add ASN1decode, ASN1encodeInterface
 # todo BACnetLogData add ASN1decode, ASN1encodeInterface
 # todo BACnetLogMultipleRecord add ASN1decode, ASN1encodeInterface
-
 # todo BACnetOptionalBinaryPV add
 # todo BACnetOptionalCharacterString add
 # todo BACnetOptionalREAL add
@@ -4446,8 +4513,6 @@ class BVLC_new:
 
 
         return leng
-
-
 
 class BVLC:
     BVLL_TYPE_BACNET_IP = 0x81
