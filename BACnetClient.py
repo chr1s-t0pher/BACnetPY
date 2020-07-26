@@ -641,7 +641,7 @@ class BacnetClient:
         self.transport.send(buffer, self.transport.headerlength, len(buffer), broadcast, False, 0)
 
     def ReadPropertyRequest(self,device_identifier:BACnetObjectIdentifier = None, adr:BACnetAddress = None, rq: ReadProperty_Request = None):
-
+        #fixme as async and retries and await answer
         npdu = NPDU(destination=BACnetAddress(net_type=BACnetNetworkType.IPV4, address=device_identifier, network_number=adr.network_number))
         npdu.control.data_expecting_reply = True
         npdu.control.network_priority.Normal_Message = True

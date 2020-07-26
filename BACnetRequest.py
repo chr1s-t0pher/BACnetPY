@@ -67,6 +67,7 @@ class ReinitializeDevice_Request:
                 leng += leng1
         return leng
 
+
 class DeviceCommunicationControl_Request:
     class enabledisableChoice(enum.IntEnum):
         enable = 0
@@ -110,6 +111,7 @@ class DeviceCommunicationControl_Request:
                 (leng1, self.password) = ASN1.decode_character_string(buffer, offset+leng,apdu_len-leng,len_value)
                 leng += leng1
         return leng
+
 
 class AddListElement_Request:
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None,
@@ -175,6 +177,7 @@ class AddListElement_Request:
 
         return leng
 
+
 class RemoveListElement_Request(AddListElement_Request):
     # the same as AddListElement_Request?!?
     def __init__(self, objectidentifier: BACnetObjectIdentifier = None,
@@ -185,6 +188,7 @@ class RemoveListElement_Request(AddListElement_Request):
         self.propertyidentifier = propertyidentifier
         self.propertyarrayindex = propertyarrayindex
         self.listofelements = listofelements
+
 
 class IHave_Request:
     def __init__(self, deviceidentifier: BACnetObjectIdentifier = None,
@@ -241,6 +245,7 @@ class IHave_Request:
                self.objectidentifier.ASN1encode_app() + \
                ASN1.encode_application_character_string(self.objectname)
 
+
 class WhoHas_Request:
     def __init__(self, deviceinstancerangelowlimit=None, deviceinstancerangehighlimit=None, obj=None):
         self.deviceinstancerangelowlimit = deviceinstancerangelowlimit
@@ -290,7 +295,8 @@ class WhoHas_Request:
             buffer += self.obj.ASN1encode_context(2)
         elif type(self.obj) == str:
             buffer += ASN1.encode_context_character_string(3,self.obj)
-        return  buffer
+        return buffer
+
 
 class TextMessage_Request:
     def __init__(self, textmessagesourcedevice : BACnetObjectIdentifier = None,
@@ -373,6 +379,7 @@ class TextMessage_Request:
         buffer += ASN1.encode_context_character_string(3,self.message)
         return buffer
 
+
 class IAm_Request:
     def __init__(self, iamdeviceidentifier : BACnetObjectIdentifier = None,
                  maxapdulengthaccepted : int = None,
@@ -448,6 +455,7 @@ class IAm_Request:
                ASN1.encode_application_unsigned(self.maxapdulengthaccepted)+\
                ASN1.encode_application_enumerated(int(self.segmentationsupported))+\
                ASN1.encode_application_unsigned(self.vendorid)
+
 
 class YouAre_Request:
     def __init__(self, vendorID:int =None,
@@ -572,6 +580,7 @@ class WhoAmI_Request:
 
         return buffer
 
+
 class WhoIs_Request:
     def __init__(self, deviceInstanceRangeLowLimit=None, deviceInstanceRangeHighLimit=None):
         self.deviceInstanceRangeLowLimit = deviceInstanceRangeLowLimit
@@ -634,6 +643,7 @@ class WhoIs_Request:
         else:
             return bytearray(0)
 
+
 class TimeSynchronization_Request:
     def __init__(self, TIME : BACnetDateTime = None):
         self.TIME = TIME
@@ -648,6 +658,7 @@ class TimeSynchronization_Request:
 
     def ASN1encode(self):
         return self.TIME.ASN1encode()
+
 
 class DeleteObject_Request:
     def __init__(self, objectidentifier : BACnetObjectIdentifier =None):
@@ -668,6 +679,7 @@ class DeleteObject_Request:
             return -1
 
         return leng
+
 
 class ReadRange_Request:
     def __init__(self, objectidentifier:BACnetObjectIdentifier = None, propertyidentifier :BACnetPropertyIdentifier = None, propertyarrayindex:int = None, Range = None):
@@ -811,9 +823,8 @@ class ReadRange_Request:
             else:
                 return -1
 
-
-
         return leng
+
 
 class CreateObject_Request:
     def __init__(self, objectspecifier =None, listofinitialvalues : [] = None):
@@ -872,9 +883,8 @@ class CreateObject_Request:
             if ASN1.decode_is_closing_tag(buffer, offset + leng):
                 leng += 1
 
-
-
         return leng
+
 
 class SubscribeCOVProperty_Request:
     def __init__(self, subscriberprocessidentifier : int =None, monitoredobjectidentifier : BACnetObjectIdentifier = None, issueconfirmednotifications :bool = None,lifetime:int = None, monitoredpropertyidentifier:BACnetPropertyReference =None,covincrement:float = None ):
@@ -946,6 +956,7 @@ class SubscribeCOVProperty_Request:
 
         return leng
 
+
 class SubscribeCOV_Request:
     def __init__(self, subscriberprocessidentifier : int =None, monitoredobjectidentifier : BACnetObjectIdentifier = None, issueconfirmednotifications :bool = None,lifetime:int = None ):
         self.subscriberprocessidentifier  = subscriberprocessidentifier
@@ -997,6 +1008,7 @@ class SubscribeCOV_Request:
                 leng += leng1
 
         return leng
+
 
 class AtomicWriteFile_Request:
     def __init__(self, fileidentifier : BACnetObjectIdentifier =None, accessmethod=None):
@@ -1195,6 +1207,7 @@ class AtomicReadFile_Request:
 
         return leng
 
+
 class COVNotification_Request:
     def __init__(self, subscriberprocessidentifier=None, initiatingdeviceidentifier=None, monitoredobjectidentifier=None, timeremaining=None, listofvalues=None):
         self.subscriberprocessidentifier  = subscriberprocessidentifier
@@ -1277,6 +1290,7 @@ class COVNotification_Request:
         self.listofvalues = _values
         return leng
 
+
 class WriteProperty_Request:
     def __init__(self,objectidentifier:BACnetObjectIdentifier = None, propertyidentifier:BACnetPropertyIdentifier = None, propertyarrayindex:int = None,propertyvalue = None,priority:int= None):
         self.objectidentifier = objectidentifier
@@ -1348,6 +1362,7 @@ class WriteProperty_Request:
 
         return leng
 
+
 class WritePropertyMultiple_Request:
     def __init__(self, listofwriteaccessspecifications : [] = None):
         self.listofwriteaccessspecifications = listofwriteaccessspecifications
@@ -1367,6 +1382,7 @@ class WritePropertyMultiple_Request:
             self.listofwriteaccessspecifications.append(was)
         return leng
 
+
 class ReadPropertyMultiple_Request:
     def __init__(self, listofreadaccessspecifications : [] = None):
         self.listofreadaccessspecifications = listofreadaccessspecifications
@@ -1385,6 +1401,7 @@ class ReadPropertyMultiple_Request:
             leng += ras.ASN1decode(buffer,offset+leng,apdu_len-leng)
             self.listofreadaccessspecifications.append(ras)
         return leng
+
 
 class ReadProperty_Request(ASN1encodeInterface):
     def __init__(self, objectidentifier:BACnetObjectIdentifier= None, propertyidentifier:BACnetPropertyIdentifier= None,propertyarrayindex:int =None):
@@ -1431,7 +1448,6 @@ class ReadProperty_Request(ASN1encodeInterface):
                 leng += leng1
 
         return leng
-
 
 
 class EventNotification_Request:
@@ -1627,9 +1643,8 @@ class EventNotification_Request:
         buffer += ASN1.encode_context_enumerated(8, self.notifyType)
         #fixme tag  9 /10 / 11 / 12
 
-
-
         return buffer
+
 
 class ReadProperty_ACK:
     def __init__(self, objectidentifier:BACnetObjectIdentifier = None, propertyidentifier:BACnetPropertyIdentifier= None, propertyarrayindex:int = None, property_value = None):
@@ -1698,8 +1713,4 @@ class ReadProperty_ACK:
             return -1
 
         return leng
-
-
-
-
 
