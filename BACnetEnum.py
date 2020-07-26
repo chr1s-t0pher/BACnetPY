@@ -1,26 +1,27 @@
-#MIT License
+# MIT License
 #
-#Copyright (c) 2020 chr1s-t0pher
+# Copyright (c) 2020 chr1s-t0pher
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import enum
+
 
 class BACnetAbortReason(enum.IntEnum):
     other = 0
@@ -36,17 +37,19 @@ class BACnetAbortReason(enum.IntEnum):
     tsm_timeout = 10
     apdu_too_long = 11
 
+
 class BACnetRejectReason(enum.IntEnum):
     other = 0
-    buffer_overflow =1
+    buffer_overflow = 1
     inconsistent_parameters = 2
-    invalid_parameter_data_type= 3
+    invalid_parameter_data_type = 3
     invalid_tag = 4
     missing_required_parameter = 5
     parameter_out_of_range = 6
     too_many_arguments = 7
     undefined_enumeration = 8
     unrecognized_service = 9
+
 
 class BACnetAccessAuthenticationFactorDisable(enum.IntEnum):
     NONE = 0
@@ -56,11 +59,13 @@ class BACnetAccessAuthenticationFactorDisable(enum.IntEnum):
     DISABLED_DAMAGED = 4
     DISABLED_DESTROYED = 5
 
+
 class BACnetAccessCredentialDisable(enum.IntEnum):
     NONE = 0
     DISABLE = 1
     DISABLE_MANUAL = 2
     DISABLE_LOCKOUT = 3
+
 
 class BACnetAccessCredentialDisableReason(enum.IntEnum):
     DISABLED = 0
@@ -73,6 +78,7 @@ class BACnetAccessCredentialDisableReason(enum.IntEnum):
     DISABLED_MAX_USES = 7
     DISABLED_INACTIVITY = 8
     DISABLED_MANUAL = 9
+
 
 class BACnetAccessEvent(enum.IntEnum):
     NONE = 0
@@ -92,7 +98,6 @@ class BACnetAccessEvent(enum.IntEnum):
     AUTHORIZATION_DELAYED = 14
     VERIFICATION_REQUIRED = 15
     NO_ENTRY_AFTER_GRANT = 16
-
     DENIED_DENY_ALL = 128
     DENIED_UNKNOWN_CREDENTIAL = 129
     DENIED_AUTHENTICATION_UNAVAILABLE = 130
@@ -131,15 +136,18 @@ class BACnetAccessEvent(enum.IntEnum):
     DENIED_VERIFICATION_TIMEOUT = 163
     DENIED_OTHER = 164
 
+
 class BACnetAccessPassbackMode(enum.IntEnum):
     PASSBACK_OFF = 0
     HARD_PASSBACK = 1
     SOFT_PASSBACK = 2
 
+
 class BACnetAccessUserType(enum.IntEnum):
     ASSET = 0
     GROUP = 1
     PERSON = 2
+
 
 class BACnetAccessZoneOccupancyState(enum.IntEnum):
     NORMAL = 0
@@ -150,9 +158,11 @@ class BACnetAccessZoneOccupancyState(enum.IntEnum):
     DISABLED = 5
     NOT_SUPPORTED = 6
 
+
 class BACnetAction(enum.IntEnum):
     DIRECT = 0
     REVERSE = 1
+
 
 class BACnetAuthenticationFactorType(enum.IntEnum):
     UNDEFINED = 0
@@ -181,6 +191,7 @@ class BACnetAuthenticationFactorType(enum.IntEnum):
     CBEFF_C = 23
     USER_PASSWORD = 24
 
+
 class BACnetAuthenticationStatus(enum.IntEnum):
     NOT_READY = 0
     READY = 1
@@ -189,6 +200,7 @@ class BACnetAuthenticationStatus(enum.IntEnum):
     WAITING_FOR_ACCOMPANIMENT = 4
     WAITING_FOR_VERIFICATION = 5
     IN_PROGRESS = 6
+
 
 class BACnetAuthorizationExemption(enum.IntEnum):
     PASSBACK = 0
@@ -199,6 +211,7 @@ class BACnetAuthorizationExemption(enum.IntEnum):
     VERIFICATION = 5
     AUTHORIZATION_DELAY = 6
 
+
 class BACnetAuthorizationMode(enum.IntEnum):
     AUTHORIZE = 0
     GRANT_ACTIVE = 1
@@ -207,12 +220,14 @@ class BACnetAuthorizationMode(enum.IntEnum):
     AUTHORIZATION_DELAYED = 4
     NONE = 5
 
+
 class BACnetBackupState(enum.IntEnum):
     IDLE = 0
     PREPARING_FOR_BACKUP = 1
     PREPARING_FOR_RESTORE = 2
     PERFORMING_A_BACKUP = 3
     PERFORMING_A_RESTORE = 4
+
 
 class BACnetBinaryLightingPV(enum.IntEnum):
     OFF = 0
@@ -222,9 +237,11 @@ class BACnetBinaryLightingPV(enum.IntEnum):
     WARN_RELINQUISH = 4
     STOP = 5
 
+
 class BACnetBinaryPV(enum.IntEnum):
     inactive = 0
     active = 1
+
 
 class BACnetDeviceStatus(enum.IntEnum):
     OPERATIONAL = 0
@@ -233,6 +250,7 @@ class BACnetDeviceStatus(enum.IntEnum):
     DOWNLOAD_IN_PROGRESS = 3
     NON_OPERATIONAL = 4
     BACKUP_IN_PROGRESS = 5
+
 
 class BACnetDoorAlarmState(enum.IntEnum):
     NORMAL = 0
@@ -245,10 +263,12 @@ class BACnetDoorAlarmState(enum.IntEnum):
     FREE_ACCESS = 7
     EGRESS_OPEN = 8
 
+
 class BACnetDoorSecuredStatus(enum.IntEnum):
     SECURED = 0
     UNSECURED = 1
     UNKNOWN = 2
+
 
 class BACnetDoorStatus(enum.IntEnum):
     CLOSED = 0
@@ -262,11 +282,13 @@ class BACnetDoorStatus(enum.IntEnum):
     SAFETY_LOCKED = 8
     LIMITED_OPENED = 9
 
+
 class BACnetDoorValue(enum.IntEnum):
     LOCK = 0
     UNLOCK = 1
     PULSE_UNLOCK = 2
     EXTENDED_PULSE_UNLOCK = 3
+
 
 class BACnetEngineeringUnits(enum.IntEnum):
     METERS_PER_SECOND_PER_SECOND = 166
@@ -533,6 +555,7 @@ class BACnetEngineeringUnits(enum.IntEnum):
     PASCAL_SECONDS = 253
     MILLION_STANDARD_CUBIC_FEET_PER_MINUTE = 254
 
+
 class BACnetEscalatorFault(enum.IntEnum):
     CONTROLLER_FAULT = 0
     DRIVE_AND_MOTOR_FAULT = 1
@@ -544,6 +567,7 @@ class BACnetEscalatorFault(enum.IntEnum):
     DRIVE_TEMPERATURE_EXCEEDED = 7
     COMB_PLATE_FAULT = 8
 
+
 class BACnetEscalatorMode(enum.IntEnum):
     UNKNOWN = 0
     STOP = 1
@@ -551,6 +575,7 @@ class BACnetEscalatorMode(enum.IntEnum):
     DOWN = 3
     INSPECTION = 4
     OUT_OF_SERVICE = 5
+
 
 class BACnetEscalatorOperationDirection(enum.IntEnum):
     UNKNOWN = 0
@@ -560,6 +585,7 @@ class BACnetEscalatorOperationDirection(enum.IntEnum):
     DOWN_RATED_SPEED = 4
     DOWN_REDUCED_SPEED = 5
 
+
 class BACnetEventState(enum.IntEnum):
     NORMAL = 0
     FAULT = 1
@@ -567,6 +593,7 @@ class BACnetEventState(enum.IntEnum):
     HIGH_LIMIT = 3
     LOW_LIMIT = 4
     LIFE_SAFETY_ALARM = 5
+
 
 class BACnetEventType(enum.IntEnum):
     CHANGE_OF_BITSTRING = 0
@@ -580,7 +607,6 @@ class BACnetEventType(enum.IntEnum):
     EXTENDED = 9
     BUFFER_READY = 10
     UNSIGNED_RANGE = 11
-
     ACCESS_EVENT = 13
     DOUBLE_OUT_OF_RANGE = 14
     SIGNED_OUT_OF_RANGE = 15
@@ -592,6 +618,7 @@ class BACnetEventType(enum.IntEnum):
     CHANGE_OF_DISCRETE_VALUE = 21
     CHANGE_OF_TIMER = 22
 
+
 class BACnetFaultType(enum.IntEnum):
     NONE = 0
     FAULT_CHARACTERSTRING = 1
@@ -602,14 +629,17 @@ class BACnetFaultType(enum.IntEnum):
     FAULT_OUT_OF_RANGE = 6
     FAULT_LISTED = 7
 
+
 class BACnetFileAccessMethod(enum.IntEnum):
     RECORD_ACCESS = 0
     STREAM_ACCESS = 1
+
 
 class BACnetIPMode(enum.IntEnum):
     NORMAL = 0
     FOREIGN = 1
     BBMD = 2
+
 
 class BACnetLifeSafetyMode(enum.IntEnum):
     OFF = 0
@@ -628,6 +658,7 @@ class BACnetLifeSafetyMode(enum.IntEnum):
     AUTOMATIC_RELEASE_DISABLED = 13
     DEFAULT = 14
 
+
 class BACnetLifeSafetyOperation(enum.IntEnum):
     NONE = 0,
     SILENCE = 1
@@ -639,6 +670,7 @@ class BACnetLifeSafetyOperation(enum.IntEnum):
     UNSILENCE = 7
     UNSILENCE_AUDIBLE = 8
     UNSILENCE_VISUAL = 9
+
 
 class BACnetLifeSafetyState(enum.IntEnum):
     QUIET = 0
@@ -666,6 +698,7 @@ class BACnetLifeSafetyState(enum.IntEnum):
     SUPERVISORY = 22
     TEST_SUPERVISORY = 23
 
+
 class BACnetLiftCarDirection(enum.IntEnum):
     UNKNOWN = 0
     NONE = 1
@@ -674,10 +707,12 @@ class BACnetLiftCarDirection(enum.IntEnum):
     DOWN = 4
     UP_AND_DOWN = 5
 
+
 class BACnetLiftCarDoorCommand(enum.IntEnum):
     NONE = 0
     OPEN = 1
     CLOSE = 2
+
 
 class BACnetLiftCarDriveStatus(enum.IntEnum):
     UNKNOWN = 0
@@ -690,6 +725,7 @@ class BACnetLiftCarDriveStatus(enum.IntEnum):
     TWO_FLOOR_JUMP = 7
     THREE_FLOOR_JUMP = 8
     MULTI_FLOOR_JUMP = 9
+
 
 class BACnetLiftCarMode(enum.IntEnum):
     UNKNOWN = 0
@@ -706,6 +742,7 @@ class BACnetLiftCarMode(enum.IntEnum):
     FIRE_OPERATION = 11
     OUT_OF_SERVICE = 12
     OCCUPANT_EVACUATION = 13
+
 
 class BACnetLiftFault(enum.IntEnum):
     CONTROLLER_FAULT = 0
@@ -726,6 +763,7 @@ class BACnetLiftFault(enum.IntEnum):
     DRIVE_TEMPERATURE_EXCEEDED = 15
     LOAD_MEASUREMENT_FAULT = 16
 
+
 class BACnetLiftGroupMode(enum.IntEnum):
     UNKNOWN = 0
     NORMAL = 1
@@ -735,12 +773,14 @@ class BACnetLiftGroupMode(enum.IntEnum):
     EMERGENCY_POWER = 5
     UP_PEAK = 6
 
+
 class BACnetLightingInProgress(enum.IntEnum):
     IDLE = 0
     FADE_ACTIVE = 1
     RAMP_ACTIVE = 2
     NOT_CONTROLLED = 3
     OTHER = 4
+
 
 class BACnetLightingOperation(enum.IntEnum):
     NONE = 0
@@ -755,10 +795,12 @@ class BACnetLightingOperation(enum.IntEnum):
     WARN_RELINQUISH = 9
     STOP = 10
 
+
 class BACnetLightingTransition(enum.IntEnum):
     NONE = 0
     FADE = 1
     RAMP = 2
+
 
 class BACnetLockStatus(enum.IntEnum):
     LOCKED = 0
@@ -767,10 +809,12 @@ class BACnetLockStatus(enum.IntEnum):
     UNUSED = 3
     UNKNOWN = 4
 
+
 class BACnetLoggingType(enum.IntEnum):
     POLLED = 0
     COV = 1
     TRIGGERED = 2
+
 
 class BACnetMaintenance(enum.IntEnum):
     NONE = 0
@@ -778,11 +822,13 @@ class BACnetMaintenance(enum.IntEnum):
     NEED_SERVICE_OPERATIONAL = 2
     NEED_SERVICE_INOPERATIVE = 3
 
+
 class BACnetNetworkNumberQuality(enum.IntEnum):
     UNKNOWN = 0
     LEARNED = 1
     LEARNED_CONFIGURED = 2
     CONFIGURED = 3
+
 
 class BACnetNetworkPortCommand(enum.IntEnum):
     IDLE = 0
@@ -793,6 +839,7 @@ class BACnetNetworkPortCommand(enum.IntEnum):
     RESTART_AUTONEGOTIATION = 5
     DISCONNECT = 6
     RESTART_PORT = 7
+
 
 class BACnetNetworkType(enum.IntEnum):
     ETHERNET = 0
@@ -831,10 +878,12 @@ class BACnetNodeType(enum.IntEnum):
     ROOM = 20
     ZONE = 21
 
+
 class BACnetNotifyType(enum.IntEnum):
     ALARM = 0
     EVENT = 1
     ACK_NOTIFICATION = 2
+
 
 class BACnetObjectType(enum.IntEnum):
     Analog_Input = 0
@@ -899,9 +948,11 @@ class BACnetObjectType(enum.IntEnum):
     Lift = 59
     Staging = 60
 
+
 class BACnetPolarity(enum.IntEnum):
     normal = 0
     reverse = 1
+
 
 class BACnetProgramError(enum.IntEnum):
     NORMAL = 0
@@ -909,6 +960,7 @@ class BACnetProgramError(enum.IntEnum):
     INTERNAL = 2
     PROGRAM = 3
     OTHER = 4
+
 
 class BACnetProgramRequest(enum.IntEnum):
     READY = 0
@@ -918,6 +970,7 @@ class BACnetProgramRequest(enum.IntEnum):
     RESTART = 4
     UNLOAD = 5
 
+
 class BACnetProgramState(enum.IntEnum):
     IDLE = 0
     LOADING = 1
@@ -925,6 +978,7 @@ class BACnetProgramState(enum.IntEnum):
     WAITING = 3
     HALTED = 4
     UNLOADING = 5
+
 
 class BACnetPropertyIdentifier(enum.IntEnum):
     ACKED_TRANSITIONS = 0
@@ -1399,11 +1453,13 @@ class BACnetPropertyIdentifier(enum.IntEnum):
     TARGET_REFERENCES = 496
     fault_signals = 463
 
+
 class BACnetProtocolLevel(enum.IntEnum):
     PHYSICAL = 0
     PROTOCOL = 1
     BACNET_APPLICATION = 2
     NON_BACNET_APPLICATION = 3
+
 
 class BACnetRelationship(enum.IntEnum):
     UNKNOWN = 0
@@ -1437,6 +1493,7 @@ class BACnetRelationship(enum.IntEnum):
     SUPPLIES_STEAM = 28
     RECEIVES_STEAM = 29
 
+
 class BACnetReliability(enum.IntEnum):
     NO_FAULT_DETECTED = 0
     NO_SENSOR = 1
@@ -1463,6 +1520,7 @@ class BACnetReliability(enum.IntEnum):
     FAULTS_LISTED = 23
     REFERENCED_OBJECT_FAULT = 24
 
+
 class BACnetRestartReason(enum.IntEnum):
     UNKNOWN = 0
     COLD_START = 1
@@ -1473,6 +1531,7 @@ class BACnetRestartReason(enum.IntEnum):
     SOFTWARE_WATCHDOG = 6
     SUSPENDED = 7
 
+
 class BACnetSecurityLevel(enum.IntEnum):
     INCAPABLE = 0
     PLAIN = 1
@@ -1481,11 +1540,13 @@ class BACnetSecurityLevel(enum.IntEnum):
     SIGNED_END_TO_END = 4
     ENCRYPTED_END_TO_END = 5
 
+
 class BACnetSecurityPolicy(enum.IntEnum):
     PLAIN_NON_TRUSTED = 0
     PLAIN_TRUSTED = 1
     SIGNED_TRUSTED = 2
     ENCRYPTED_TRUSTED = 3
+
 
 class BACnetSegmentation(enum.IntEnum):
     SEGMENTED_BOTH = 0
@@ -1493,11 +1554,13 @@ class BACnetSegmentation(enum.IntEnum):
     SEGMENTED_RECEIVE = 2
     NO_SEGMENTATION = 3
 
+
 class BACnetShedState(enum.IntEnum):
     INACTIVE = 0
     REQUEST_PENDING = 1
     COMPLIANT = 2
     NON_COMPLIANT = 3
+
 
 class BACnetSilencedState(enum.IntEnum):
     UNSILENCED = 0
@@ -1505,10 +1568,12 @@ class BACnetSilencedState(enum.IntEnum):
     VISIBLE_SILENCED = 2
     ALL_SILENCED = 3
 
+
 class BACnetTimerState(enum.IntEnum):
     IDLE = 0
     RUNNING = 1
     EXPIRED = 2
+
 
 class BACnetTimerTransition(enum.IntEnum):
     NONE = 0
@@ -1520,6 +1585,7 @@ class BACnetTimerTransition(enum.IntEnum):
     EXPIRED_TO_IDLE = 6
     EXPIRED_TO_RUNNING = 7
 
+
 class BACnetVTClass(enum.IntEnum):
     DEFAULT_TERMINAL = 0
     ANSI_X3_64 = 1
@@ -1529,11 +1595,13 @@ class BACnetVTClass(enum.IntEnum):
     HP_700_94 = 5
     IBM_3130 = 6
 
+
 class BACnetWriteStatus(enum.IntEnum):
     IDLE = 0
     IN_PROGRESS = 1
     SUCCESSFUL = 2
     FAILED = 3
+
 
 class BACnetConfirmedServiceChoice(enum.IntEnum):
     # Alarm and Event Services
@@ -1557,7 +1625,7 @@ class BACnetConfirmedServiceChoice(enum.IntEnum):
     CREATE_OBJECT = 10
     DELETE_OBJECT = 11
     READ_PROPERTY = 12
-    #SERVICE_CONFIRMED_READ_CONDITIONAL = 13 removed
+    # SERVICE_CONFIRMED_READ_CONDITIONAL = 13 removed
     READ_PROPERTY_MULTIPLE = 14
     READ_RANGE = 26
     WRITE_PROPERTY = 15
@@ -1572,8 +1640,9 @@ class BACnetConfirmedServiceChoice(enum.IntEnum):
     VT_CLOSE = 22
     VT_DATA = 23
     # Security Services
-    #SERVICE_CONFIRMED_AUTHENTICATE = 24 removed
-    #SERVICE_CONFIRMED_REQUEST_KEY = 25 removed
+    # SERVICE_CONFIRMED_AUTHENTICATE = 24 removed
+    # SERVICE_CONFIRMED_REQUEST_KEY = 25 removed
+
 
 class BACnetUnconfirmedServiceChoice(enum.IntEnum):
     I_AM = 0
@@ -1588,5 +1657,5 @@ class BACnetUnconfirmedServiceChoice(enum.IntEnum):
     UTC_TIME_SYNCHRONIZATION = 9
     WRITE_GROUP = 10
     UNCONFIRMED_COV_NOTIFICATION_MULTIPLE = 11
-    WHO_AM_I = 12 #not added to wireshark number unclear
-    YOU_ARE = 13 #not added to wireshark number unclear
+    WHO_AM_I = 12 # not added to wireshark number unclear
+    YOU_ARE = 13 # not added to wireshark number unclear

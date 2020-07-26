@@ -1,24 +1,24 @@
-#MIT License
+# MIT License
 #
-#Copyright (c) 2020 chr1s-t0pher
+# Copyright (c) 2020 chr1s-t0pher
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 from BACnetEnum import *
 from BACnetBase import *
@@ -257,26 +257,26 @@ class WhoHas_Request:
 
     def ASN1decode(self, buffer, offset, apdu_len):
         leng = 0
-        if (ASN1.decode_is_context_tag(buffer, offset + leng, 0)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 0):
             (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
             leng += leng1
             (leng1, self.deviceinstancerangelowlimit) = ASN1.decode_unsigned(buffer, offset + leng, len_value)
             leng += leng1
 
 
-        if (ASN1.decode_is_context_tag(buffer, offset + leng, 1)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 1):
             (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
             leng += leng1
             (leng1, self.deviceinstancerangehighlimit) = ASN1.decode_unsigned(buffer, offset + leng, len_value)
             leng += leng1
 
 
-        if (ASN1.decode_is_context_tag(buffer, offset + leng, 2)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 2):
             (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
             leng += leng1
             self.obj = BACnetObjectIdentifier()
             leng += BACnetObjectIdentifier.ASN1decode(self.obj, buffer, offset + leng, len_value)
-        elif(ASN1.decode_is_context_tag(buffer, offset + leng, 3)):
+        elif ASN1.decode_is_context_tag(buffer, offset + leng, 3):
             (leng1, self.obj) = ASN1.decode_context_character_string(buffer, offset + leng, 20000, 3)
             leng += leng1
         else:
@@ -319,7 +319,7 @@ class TextMessage_Request:
 
         #tag 0 textmessagesourcedevice
         self.textmessagesourcedevice = BACnetObjectIdentifier()
-        if (ASN1.decode_is_context_tag(buffer, offset + leng, 0)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 0):
             (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
             leng += leng1
             leng += BACnetObjectIdentifier.ASN1decode(self.textmessagesourcedevice, buffer, offset+leng, len_value)
@@ -330,7 +330,7 @@ class TextMessage_Request:
             return -1
 
         #tag 1 messageClass untested optional
-        if(ASN1.decode_is_context_tag(buffer, offset + leng, 1)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 1):
             leng += 1
             (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
             leng += leng1
@@ -344,7 +344,7 @@ class TextMessage_Request:
                 return -1
 
         #tag 2 messagePriority
-        if (ASN1.decode_is_context_tag(buffer, offset + leng, 2)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 2):
             (leng1, tag_number, len_value) = ASN1.decode_tag_number_and_value(buffer, offset + leng)
             leng += leng1
             (leng1, priority) = ASN1.decode_enumerated(buffer, offset + leng, len_value)
@@ -354,7 +354,7 @@ class TextMessage_Request:
             return -1
 
         #tag 3 Message
-        if (ASN1.decode_is_context_tag(buffer, offset + leng, 3)):
+        if ASN1.decode_is_context_tag(buffer, offset + leng, 3):
             (leng1, self.message) = ASN1.decode_context_character_string(buffer, offset + leng, 20000, 3)
             leng += leng1
         else:

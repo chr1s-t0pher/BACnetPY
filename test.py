@@ -1,24 +1,24 @@
-#MIT License
+# MIT License
 #
-#Copyright (c) 2020 chr1s-t0pher
+# Copyright (c) 2020 chr1s-t0pher
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 from BACnetClient import *
 from BACnetTransport import UDPIPProtocol
@@ -32,12 +32,12 @@ def recieved_WHOIS(sender : BacnetClient, adr : BACnetAddress, rq : WhoIs_Reques
 
 def recieved_IAM(sender : BacnetClient, adr : BACnetAddress, rq : IAm_Request):
     print("recieved IAM")
-    sender.UnconfirmedWhoAmI(WhoAmI_Request(88,"test","123456789"))
-    sender.ReadPropertyRequest(BACnetObjectIdentifier(BACnetObjectType.Device,1),
-        BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=20),
-        ReadProperty_Request(
-            BACnetObjectIdentifier(BACnetObjectType.Notification_Class, 0),
-                             BACnetPropertyIdentifier.RECIPIENT_LIST))
+    #sender.UnconfirmedWhoAmI(WhoAmI_Request(88,"test","123456789"))
+    #sender.ReadPropertyRequest(BACnetObjectIdentifier(BACnetObjectType.Device,1),
+    #    BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=20),
+    #    ReadProperty_Request(
+     #       BACnetObjectIdentifier(BACnetObjectType.Notification_Class, 0),
+     #                        BACnetPropertyIdentifier.RECIPIENT_LIST))
 
 
 def recieved_WhoHas(sender : BacnetClient, adr : BACnetAddress, rq : WhoHas_Request):
@@ -47,7 +47,7 @@ def recieved_COVNotification(sender : BacnetClient, adr : BACnetAddress, rq : CO
     if confirmed == True:
         print("Confirmed COVNotification")
     else:
-        print("Confirmed COVNotification")
+        print("Unconfirmed COVNotification")
 
 def recieved_OnTimeSynchronize(sender : BacnetClient, adr : BACnetAddress, rq : TimeSynchronization_Request):
     print("recieved_OnTimeSynchronize")
@@ -56,7 +56,7 @@ def recieved_OnEventNotify(sender : BacnetClient, adr : BACnetAddress, rq : Even
     if confirmed == True:
         print("Confirmed EventNotification")
     else:
-        print("Confirmed EventNotification")
+        print("Unconfirmed EventNotification")
 
 def recieved_IHave(sender : BacnetClient, adr : BACnetAddress, rq : IHave_Request):
     print("recieved_IHave")
