@@ -449,8 +449,130 @@ class IAm_Request:
                ASN1.encode_application_enumerated(int(self.segmentationsupported))+\
                ASN1.encode_application_unsigned(self.vendorid)
 
-class WhoIs_Request:
+class YouAre_Request:
+    def __init__(self, vendorID:int =None,
+                 modelName:str=None,
+                 serialNumber:str=None,
+                 deviceIdentifier:BACnetObjectIdentifier = None,
+                 deviceMACAddress:bytes = None):
+        self.vendorID = vendorID
+        self.modelName = modelName
+        self.serialNumber = serialNumber
+        self.deviceIdentifier = deviceIdentifier
+        self.deviceMACAddress = deviceMACAddress
 
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+        # vendorID
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == BACnetApplicationTags.UNSIGNED_INT:
+            (leng1, self.vendorID) = ASN1.decode_unsigned(buffer, offset + leng, len_value)
+            leng += leng1
+        else:
+            return -1
+        # modelName
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == BACnetApplicationTags.CHARACTER_STRING:
+            (leng1, self.modelName) = ASN1.decode_character_string(buffer, offset + leng, apdu_len-leng, len_value)
+            leng += leng1
+        else:
+            return -1
+
+        # serialNumber
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == BACnetApplicationTags.CHARACTER_STRING:
+            (leng1, self.serialNumber) = ASN1.decode_character_string(buffer, offset + leng, apdu_len - leng,
+                                                                   len_value)
+            leng += leng1
+        else:
+            return -1
+
+        if leng < apdu_len:
+            # deviceIdentifier
+            leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+
+            if tag_number == BACnetApplicationTags.BACNETOBJECTIDENTIFIER:
+                leng += leng1
+                self.deviceIdentifier = BACnetObjectIdentifier()
+                leng += self.deviceIdentifier.ASN1decode(buffer, offset+leng, len_value)
+
+        if leng < apdu_len:
+            # deviceMACAddress
+            leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+
+            if tag_number == BACnetApplicationTags.OCTET_STRING:
+                leng += leng1
+                (leng1, self.deviceMACAddress) = ASN1.decode_octet_string(buffer, offset + leng, len_value)
+
+                leng += leng1
+
+        return leng
+
+    def ASN1encode(self):
+        buffer = ASN1.encode_application_unsigned(self.vendorID) +\
+            ASN1.encode_application_character_string(self.modelName) +\
+            ASN1.encode_application_character_string(self.serialNumber)
+        if self.deviceIdentifier != None:
+            buffer += self.deviceIdentifier.ASN1encode_app()
+        if self.deviceMACAddress != None:
+            buffer += ASN1.encode_application_octet_string(self.deviceMACAddress, 0, len(self.deviceMACAddress))
+
+        return buffer
+
+
+class WhoAmI_Request:
+    def __init__(self, vendorID:int =None,
+                 modelName:str=None,
+                 serialNumber:str=None):
+        self.vendorID = vendorID
+        self.modelName = modelName
+        self.serialNumber = serialNumber
+
+    def __str__(self):
+        return "\nvendorid: "+str(self.vendorID)+"\nmodelName: "+str(self.modelName)+"\nserialnumber: "+str(self.serialNumber)
+
+    def ASN1decode(self, buffer, offset, apdu_len):
+        leng = 0
+        # vendorID
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == BACnetApplicationTags.UNSIGNED_INT:
+            (leng1, self.vendorID) = ASN1.decode_unsigned(buffer, offset + leng, len_value)
+            leng += leng1
+        else:
+            return -1
+        # modelName
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == BACnetApplicationTags.CHARACTER_STRING:
+            (leng1, self.modelName) = ASN1.decode_character_string(buffer, offset + leng, apdu_len-leng, len_value)
+            leng += leng1
+        else:
+            return -1
+
+        # serialNumber
+        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
+        leng += leng1
+        if tag_number == BACnetApplicationTags.CHARACTER_STRING:
+            (leng1, self.serialNumber) = ASN1.decode_character_string(buffer, offset + leng, apdu_len - leng,
+                                                                   len_value)
+            leng += leng1
+        else:
+            return -1
+
+        return leng
+
+    def ASN1encode(self):
+        buffer = ASN1.encode_application_unsigned(self.vendorID) +\
+            ASN1.encode_application_character_string(self.modelName) +\
+            ASN1.encode_application_character_string(self.serialNumber)
+
+        return buffer
+
+class WhoIs_Request:
     def __init__(self, deviceInstanceRangeLowLimit=None, deviceInstanceRangeHighLimit=None):
         self.deviceInstanceRangeLowLimit = deviceInstanceRangeLowLimit
         self.deviceInstanceRangeHighLimit = deviceInstanceRangeHighLimit
@@ -465,8 +587,6 @@ class WhoIs_Request:
 
     def ASN1decode(self, buffer, offset, apdu_len):
         leng = 0
-        low_limit = -1
-        high_limit = -1
 
         if apdu_len <= 0:
             return leng
@@ -825,8 +945,6 @@ class SubscribeCOVProperty_Request:
                 leng += leng1
 
         return leng
-
-
 
 class SubscribeCOV_Request:
     def __init__(self, subscriberprocessidentifier : int =None, monitoredobjectidentifier : BACnetObjectIdentifier = None, issueconfirmednotifications :bool = None,lifetime:int = None ):

@@ -403,6 +403,30 @@ class BacnetClient:
                 self.events.OnIHave(self, adr, rq)
             else:
                 logging.debug("Couldn't decode BACnetUnconfirmedServiceChoice.I_HAVE")
+        elif apdu.service_choice == BACnetUnconfirmedServiceChoice.WHO_AM_I and self.events.OnWhoAmI:
+            rq = WhoAmI_Request()
+            leng = WhoAmI_Request.ASN1decode(rq, buffer, offset, length)
+            if leng >= 0:
+                logging.info(
+                    "\n--------------------------- BACnetUnconfirmedServiceChoice.WHO_AM_I ---------------------------")
+                logging.info(rq)
+                logging.info(
+                    "\n---------------------------------------------------------------------------------------------")
+                self.events.OnWhoAmI(self, adr, rq)
+            else:
+                logging.debug("Couldn't decode BACnetUnconfirmedServiceChoice.WHO_AM_I")
+        elif apdu.service_choice == BACnetUnconfirmedServiceChoice.YOU_ARE and self.events.OnYouAre:
+            rq = YouAre_Request()
+            leng = YouAre_Request.ASN1decode(rq, buffer, offset, length)
+            if leng >= 0:
+                logging.info(
+                    "\n--------------------------- BACnetUnconfirmedServiceChoice.YOU_ARE ---------------------------")
+                logging.info(rq)
+                logging.info(
+                    "\n---------------------------------------------------------------------------------------------")
+                self.events.OnYouAre(self, adr, rq)
+            else:
+                logging.debug("Couldn't decode BACnetUnconfirmedServiceChoice.YOU_ARE")
         else:
             print("Unconfirmed service not handled:",apdu.service_choice)
 
@@ -519,6 +543,30 @@ class BacnetClient:
         npdu.control.network_priority.Normal_Message = True
         apdu = APDU(pdu_type=BacnetPduTypes.PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST,
                         service_choice=BACnetUnconfirmedServiceChoice.WHO_IS)
+
+        buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
+
+        self.transport.send(buffer, self.transport.headerlength, len(buffer), broadcast, False, 0)
+
+    def UnconfirmedWhoAmI(self, rq : WhoAmI_Request):
+        logging.info("Sending UnconfirmedWhoAmI ...")
+        broadcast = self.transport.getbroadcastaddress()
+        npdu = NPDU(destination=broadcast)
+        npdu.control.network_priority.Normal_Message = True
+        apdu = APDU(pdu_type=BacnetPduTypes.PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST,
+                        service_choice=BACnetUnconfirmedServiceChoice.WHO_AM_I)
+
+        buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
+
+        self.transport.send(buffer, self.transport.headerlength, len(buffer), broadcast, False, 0)
+
+    def UnconfirmedYouAre(self, rq : YouAre_Request):
+        logging.info("Sending UnconfirmedYouAre ...")
+        broadcast = self.transport.getbroadcastaddress()
+        npdu = NPDU(destination=broadcast)
+        npdu.control.network_priority.Normal_Message = True
+        apdu = APDU(pdu_type=BacnetPduTypes.PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST,
+                        service_choice=BACnetUnconfirmedServiceChoice.YOU_ARE)
 
         buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
 

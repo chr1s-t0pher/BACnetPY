@@ -32,6 +32,7 @@ def recieved_WHOIS(sender : BacnetClient, adr : BACnetAddress, rq : WhoIs_Reques
 
 def recieved_IAM(sender : BacnetClient, adr : BACnetAddress, rq : IAm_Request):
     print("recieved IAM")
+    sender.UnconfirmedWhoAmI(WhoAmI_Request(88,"test","123456789"))
     sender.ReadPropertyRequest(BACnetObjectIdentifier(BACnetObjectType.Device,1),
         BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=20),
         ReadProperty_Request(
@@ -113,6 +114,15 @@ def recieved_OnReinitializeDevice(sender : BacnetClient, adr : BACnetAddress, rq
 def recieved_OnAddListElement(sender : BacnetClient, adr : BACnetAddress, rq : AddListElement_Request):
     print("recieved_OnAddListElement")
 
+def OnWhoAmI_Handler(sender : BacnetClient, adr : BACnetAddress, rq : WhoAmI_Request):
+    print("OnWhoAmI_Handler")
+
+def OnYouAre_Handler(sender : BacnetClient, adr : BACnetAddress, rq : YouAre_Request):
+    print("OnYouAre_Handler")
+
+def OnRemoveListElement_Handler(sender : BacnetClient, adr : BACnetAddress, rq : RemoveListElement_Request):
+    print("OnRemoveListElement_Handler")
+
 bc = BacnetClient(UDPIPProtocol("192.168.0.46", 47808), 1000, 3)
 bc.events.OnWhoIs += recieved_WHOIS
 bc.events.OnIam += recieved_IAM
@@ -136,4 +146,7 @@ bc.events.OnReadRange += recieved_OnReadRange
 bc.events.OnDeviceCommunicationControl += recieved_OnDeviceCommunicationControl
 bc.events.OnReinitializeDevice += recieved_OnReinitializeDevice
 bc.events.OnAddListElement += recieved_OnAddListElement
+bc.events.OnRemoveListElement += OnRemoveListElement_Handler
+bc.events.OnWhoAmI += OnWhoAmI_Handler
+bc.events.OnYouAre += OnYouAre_Handler
 bc.start()
