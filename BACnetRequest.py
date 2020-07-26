@@ -20,7 +20,10 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #SOFTWARE.
 
+from BACnetEnum import *
 from BACnetBase import *
+import logging, sys
+import enum
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -1556,13 +1559,13 @@ class ReadProperty_ACK:
 
         # tag 3 property-value
         if ASN1.decode_is_opening_tag_number(buffer, offset + leng, 3):
-            print("propertyvalue")
+
             leng += 1
             # fixme ABSTRACT-SYNTAX.&Type
             self.property_value = []
             while not ASN1.decode_is_closing_tag_number(buffer, offset + leng, 3) and leng < apdu_len:
                 b_value = BACnetValue()
-                leng1 = b_value.ASN1decode(buffer, offset + leng, len_value, self.object_identifier.Type,
+                leng1 = b_value.ASN1decode(buffer, offset + leng, apdu_len-leng, self.object_identifier.Type,
                                            self.property_identifier)
                 if leng1 < 0:
                     return -1
@@ -1578,42 +1581,6 @@ class ReadProperty_ACK:
 
         return leng
 
-# todo Error add ASN1encodeInterface
-class BACnetError:
-    # Error renamed to BACnetError
-    def __init__(self, error_class: error_class_enum = None,
-                 error_code: error_code_enum = None):
-        self.error_class = error_class
-        self.error_code = error_code
-
-    def __str__(self):
-        return "\n"+str(self.error_class) + ": " + str(self.error_code)
-
-    def ASN1decode(self, buffer, offset, apdu_len) -> int:
-        leng = 0
-        # error_class
-        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
-        leng += leng1
-        if tag_number == BACnetApplicationTags.ENUMERATED:
-            (leng1, e_val) = ASN1.decode_enumerated(buffer, offset + leng, len_value)
-            leng += leng1
-            self.error_class = error_class_enum(e_val)
-
-        else:
-            return -1
-
-        # error_code
-        leng1, tag_number, len_value = ASN1.decode_tag_number_and_value(buffer, offset + leng)
-        leng += leng1
-        if tag_number == BACnetApplicationTags.ENUMERATED:
-            (leng1, e_val) = ASN1.decode_enumerated(buffer, offset + leng, len_value)
-            leng += leng1
-            self.error_code = error_code_enum(e_val)
-
-        else:
-            return -1
-
-        return leng
 
 
 
