@@ -95,8 +95,7 @@ class UDPIPProtocol(asyncio.Protocol):
         if address.network_number == 0xFFFF:
             function = BacnetBvlcFunctions.BVLC_ORIGINAL_BROADCAST_NPDU
 
-        buffer =  BVLC.encode(offset - BVLC.BVLC_HEADER_LENGTH, function , full_length) + buffer
-
+        buffer = BVLC.encode(offset - BVLC.BVLC_HEADER_LENGTH, function , full_length) + buffer
         self.transport.sendto(buffer, (address.IP_and_port()))
 
     def getbroadcastaddress(self) -> BACnetAddress:

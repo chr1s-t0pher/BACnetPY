@@ -30,6 +30,8 @@ from BACnetTransport import UDPIPProtocol
 # todo needs to be fixed, experimental!
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
+
+
 class BacnetClient:
     def __init__(self, transport : UDPIPProtocol = None, timeout = 1000, retries = 3):
         self.transport = transport
@@ -442,22 +444,12 @@ class BacnetClient:
             "\n-----------------------------------------------------------------")
 
 
-    def ProcessComplexAck(adr, type, service, invoke_id, buffer, offset,
-                          length):  # BACnetAddress adr, BacnetPduTypes type, BacnetConfirmedServices service, byte invoke_id, byte[] buffer, int offset, int length)
+    def ProcessComplexAck(self, adr, type, service, invoke_id, buffer, offset, length):
+        if self.events.OnComplexAck:
+            self.events.OnYouAre(self, adr, type, service, invoke_id, buffer, offset, length)
 
-        if service == BACnetConfirmedServiceChoice.READ_PROPERTY:
-            # Services.DecodeReadPropertyAcknowledge(res.Result, 0, res.Result.Length, out response_object_id, out response_property, out value_list)
-            logging.info("-------------------------- ReadProperty-ACK --------------------------")
-            rq = ReadProperty_ACK()
-            leng = rq.ASN1decode(buffer, offset, length)
-            logging.info(rq)
-            logging.info("----------------------------------------------------------------------")
-        elif service == BACnetConfirmedServiceChoice.CREATE_OBJECT:
-            pass
-        elif service == BACnetConfirmedServiceChoice.READ_PROPERTY_MULTIPLE:
-            pass
-        else:
-            logging.debug("ComplexAck not finished")
+
+
 
 
 
@@ -640,6 +632,7 @@ class BacnetClient:
 
         self.transport.send(buffer, self.transport.headerlength, len(buffer), broadcast, False, 0)
 
+
     def ReadPropertyRequest(self,device_identifier:BACnetObjectIdentifier = None, adr:BACnetAddress = None, rq: ReadProperty_Request = None):
         #fixme as async and retries and await answer
         npdu = NPDU(destination=BACnetAddress(net_type=BACnetNetworkType.IPV4, address=device_identifier, network_number=adr.network_number))
@@ -658,3 +651,30 @@ class BacnetClient:
             self._m_invoke_id = 0
         buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
         self.transport.send(buffer, self.transport.headerlength, len(buffer), adr, False, 0)
+
+    def ComplexAckHandler(sender, adr,type,service, invoke_id ,buffer, offset, length):
+        if service == BACnetConfirmedServiceChoice.READ_PROPERTY:
+            logging.info("-------------------------- ReadProperty-ACK --------------------------")
+            rq = ReadProperty_ACK()
+            leng = rq.ASN1decode(buffer, offset, length)
+            logging.info(rq)
+            logging.info("----------------------------------------------------------------------")
+            return rq
+        elif service == BACnetConfirmedServiceChoice.CREATE_OBJECT:
+            pass
+        elif service == BACnetConfirmedServiceChoice.READ_PROPERTY_MULTIPLE:
+            pass
+        else:
+            logging.debug("ComplexAck not finished")
+
+class BACnetResult:
+    def __init__(self, client:BacnetClient, adr:BACnetAddress, invoke_id:int, buffer:bytes, transmit_length:int, wait_for_transmit:bool = None, transmit_timeout:int = None):
+        self.client = client
+        self.adr = adr
+        self.invoke_id = invoke_id
+        self.buffer = buffer
+        self.transmit_length = transmit_length
+        self.wait_for_transmit = wait_for_transmit
+        self.transmit_timeout = transmit_timeout
+        self.client.events.OnComplexAck += client.ComplexAckHandler
+
