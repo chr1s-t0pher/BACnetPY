@@ -33,11 +33,14 @@ def recieved_WHOIS(sender : BacnetClient, adr : BACnetAddress, rq : WhoIs_Reques
 def recieved_IAM(sender : BacnetClient, adr : BACnetAddress, rq : IAm_Request):
     print("recieved IAM")
     #sender.UnconfirmedWhoAmI(WhoAmI_Request(88,"test","123456789"))
-    #sender.ReadPropertyRequest(BACnetObjectIdentifier(BACnetObjectType.Device,1),
-    #    BACnetAddress(address="192.168.0.154:47808", net_type=BACnetNetworkType.IPV4, network_number=20),
-    #    ReadProperty_Request(
-     #       BACnetObjectIdentifier(BACnetObjectType.Notification_Class, 0),
-     #                        BACnetPropertyIdentifier.RECIPIENT_LIST))
+    answer = sender.ReadPropertyRequest(BACnetObjectIdentifier(BACnetObjectType.Device,1),
+        BACnetAddress(address="192.168.115.237:47808", net_type=BACnetNetworkType.IPV4, network_number=20),
+        ReadProperty_Request(
+           BACnetObjectIdentifier(BACnetObjectType.Notification_Class, 0),
+                            BACnetPropertyIdentifier.RECIPIENT_LIST))
+    print("--------------------------------------------------")
+    print("answer: ", answer)
+    print("--------------------------------------------------")
 
 
 def recieved_WhoHas(sender : BacnetClient, adr : BACnetAddress, rq : WhoHas_Request):
@@ -123,7 +126,7 @@ def OnYouAre_Handler(sender : BacnetClient, adr : BACnetAddress, rq : YouAre_Req
 def OnRemoveListElement_Handler(sender : BacnetClient, adr : BACnetAddress, rq : RemoveListElement_Request):
     print("OnRemoveListElement_Handler")
 
-bc = BacnetClient(UDPIPProtocol("192.168.0.46", 47808), 1000, 3)
+bc = BacnetClient(UDPIPProtocol("192.168.115.232", 47808), 1000, 3)
 bc.events.OnWhoIs += recieved_WHOIS
 bc.events.OnIam += recieved_IAM
 bc.events.OnWhoHas += recieved_WhoHas

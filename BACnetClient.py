@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import asyncio
 
 from BACnetBase import *
 from BACnetRequest import *
@@ -51,7 +52,6 @@ class BacnetClient:
         self.raw_length = None
         self.loop = None
         self.events = Events()
-        self.t = 0
 
 
     def OnRecieve(self, sender, buffer, offset, msg_length, remote_address):
@@ -446,14 +446,7 @@ class BacnetClient:
 
     def ProcessComplexAck(self, adr, type, service, invoke_id, buffer, offset, length):
         if self.events.OnComplexAck:
-            self.events.OnYouAre(self, adr, type, service, invoke_id, buffer, offset, length)
-
-
-
-
-
-
-
+            self.events.OnComplexAck(self, adr, type, service, invoke_id, buffer, offset, length)
 
     def ProcessError(adr, Pdu_type, service, invoke_id, buffer, offset, length):
         be = BACnetError()
@@ -479,7 +472,9 @@ class BacnetClient:
             length -= apdu_header_len
 
             if not apdu.segmented_message:
-                BacnetClient.ProcessComplexAck(adr, apdu.pdu_type, apdu.service_choice, apdu.invoke_id, buffer, offset, length)
+
+                #(self, adr, type, service, invoke_id, buffer, offset, length):
+                self.ProcessComplexAck(adr, apdu.pdu_type, apdu.service_choice, apdu.invoke_id, buffer, offset, length)
             else:
                 pass  # segements!!!!
         elif apdu.pdu_type == BacnetPduTypes.PDU_TYPE_SEGMENT_ACK:
@@ -632,49 +627,72 @@ class BacnetClient:
 
         self.transport.send(buffer, self.transport.headerlength, len(buffer), broadcast, False, 0)
 
-
     def ReadPropertyRequest(self,device_identifier:BACnetObjectIdentifier = None, adr:BACnetAddress = None, rq: ReadProperty_Request = None):
-        #fixme as async and retries and await answer
-        npdu = NPDU(destination=BACnetAddress(net_type=BACnetNetworkType.IPV4, address=device_identifier, network_number=adr.network_number))
+        #fixme as async and retries and await answer, not correct yet!!!
+        task = asyncio.ensure_future(self.BeginReadPropertyRequest(device_identifier, adr, rq))
+        return task
+
+    async def BeginReadPropertyRequest(self,device_identifier:BACnetObjectIdentifier = None, adr:BACnetAddress = None, rq: ReadProperty_Request = None):
+
+        logging.info("Sending ReadPropertyRequest")
+        npdu = NPDU(destination=BACnetAddress(net_type=BACnetNetworkType.IPV4, address=device_identifier,
+                                              network_number=adr.network_number))
         npdu.control.data_expecting_reply = True
         npdu.control.network_priority.Normal_Message = True
 
         apdu = APDU(pdu_type=BacnetPduTypes.PDU_TYPE_CONFIRMED_SERVICE_REQUEST,
-                        service_choice=BACnetConfirmedServiceChoice.READ_PROPERTY,
-                        segmented_response_accepted=False,
-                        max_segments_accepted=BACnetSegmentation.NO_SEGMENTATION,
-                        max_apdu_length_accepted=BacnetMaxAdpu.MAX_APDU1476,
-                        invoke_id=self._m_invoke_id
-                        )
+                    service_choice=BACnetConfirmedServiceChoice.READ_PROPERTY,
+                    segmented_response_accepted=False,
+                    max_segments_accepted=BACnetSegmentation.NO_SEGMENTATION,
+                    max_apdu_length_accepted=BacnetMaxAdpu.MAX_APDU1476,
+                    invoke_id=self._m_invoke_id
+                    )
+
+        buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
+        result = BACnetResult(self, adr, self._m_invoke_id, buffer, len(buffer), False, 0)
         self._m_invoke_id += 1
         if self._m_invoke_id > 255:
             self._m_invoke_id = 0
-        buffer = npdu.encode() + apdu.encode() + rq.ASN1encode()
-        self.transport.send(buffer, self.transport.headerlength, len(buffer), adr, False, 0)
 
-    def ComplexAckHandler(sender, adr,type,service, invoke_id ,buffer, offset, length):
-        if service == BACnetConfirmedServiceChoice.READ_PROPERTY:
-            logging.info("-------------------------- ReadProperty-ACK --------------------------")
-            rq = ReadProperty_ACK()
-            leng = rq.ASN1decode(buffer, offset, length)
-            logging.info(rq)
-            logging.info("----------------------------------------------------------------------")
-            return rq
-        elif service == BACnetConfirmedServiceChoice.CREATE_OBJECT:
-            pass
-        elif service == BACnetConfirmedServiceChoice.READ_PROPERTY_MULTIPLE:
-            pass
-        else:
-            logging.debug("ComplexAck not finished")
+        result.send()
+        await result.Done()
+        print(result.result)
+        return result.result
+
 
 class BACnetResult:
     def __init__(self, client:BacnetClient, adr:BACnetAddress, invoke_id:int, buffer:bytes, transmit_length:int, wait_for_transmit:bool = None, transmit_timeout:int = None):
         self.client = client
         self.adr = adr
-        self.invoke_id = invoke_id
+        self.wait_invoke_id = invoke_id
         self.buffer = buffer
         self.transmit_length = transmit_length
         self.wait_for_transmit = wait_for_transmit
         self.transmit_timeout = transmit_timeout
-        self.client.events.OnComplexAck += client.ComplexAckHandler
+        self.client.events.OnComplexAck += self.ComplexAckHandler
+        self.result = None
 
+    async def Done(self):
+        while self.result == None:
+            await asyncio.sleep(1)
+        return True
+
+    def send(self):
+        self.client.transport.send(self.buffer, self.client.transport.headerlength, len(self.buffer), self.adr, self.wait_for_transmit, self.transmit_timeout)
+
+    def ComplexAckHandler(self, sender, adr, type, service, invoke_id, buffer, offset, length):
+        if self.wait_invoke_id == invoke_id:
+            if service == BACnetConfirmedServiceChoice.READ_PROPERTY:
+                #logging.info("-------------------------- ReadProperty-ACK --------------------------")
+                rq = ReadProperty_ACK()
+                leng = rq.ASN1decode(buffer, offset, length)
+                #logging.info(rq)
+                #logging.info("----------------------------------------------------------------------")
+                self.result = rq
+            elif service == BACnetConfirmedServiceChoice.CREATE_OBJECT:
+                pass
+            elif service == BACnetConfirmedServiceChoice.READ_PROPERTY_MULTIPLE:
+                pass
+            else:
+                logging.debug("ComplexAck not finished")
+            self.client.events.OnComplexAck -= self.ComplexAckHandler
